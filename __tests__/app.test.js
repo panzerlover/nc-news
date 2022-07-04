@@ -4,7 +4,6 @@ const db = require("../db/connection.js");
 const request = require("supertest");
 const app = require("../api/app.js");
 const { dropTables } = require("../db/helpers/manage-tables");
-const ERR_MSGS = require("../api/utils/enum-errors")
 
 beforeEach(() => seed(testData));
 
@@ -66,7 +65,6 @@ describe("express app", () => {
     });
     it('should return 500 when given article_id that is not a number ', async () => {
         const { body } = await request(app).get("/api/articles/1; SELECT * FROM users")
-        console.log(body);
         expect(body).toEqual(expect.objectContaining({
                 status: 500,
                 msg: 'Something went wrong with GET articles :(',
