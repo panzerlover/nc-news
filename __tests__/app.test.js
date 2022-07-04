@@ -34,7 +34,7 @@ describe("express app", () => {
           );
         });
     });
-    it.only('should call custom error handler when table does not exist', async () => {
+    it('should call custom error handler when table does not exist', async () => {
         await dropTables();
         const {body} = await request(app).get("/api/topics");
         expect(body).toEqual({
@@ -49,5 +49,36 @@ describe("express app", () => {
           }
         )
     });
+  });
+  describe('GET /api/articles/:article_id', () => {
+    it('status: 200 with correct properties', async () => {
+        const { body } = await request(app).get("/api/articles/1")
+        expect(body).toEqual(expect.objectContaining({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            body: expect.any(String),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number)
+        })
+        )
+    });
+    it('should return 500 when given article_id that is not a number ', async () => {
+        const { body } = await request(app).get("/api/articles/1; SELECT * FROM users")
+        console.log(body);
+        expect(body).toEqual(expect.objectContaining({
+                status: 500,
+                msg: 'Something went wrong with GET articles :(',
+                code: '22P02',
+                pgDetails: {
+                    msg: "Invalid text representation",
+                    tip: "check the data type of your parameter"
+                },
+                add_details: {}
+        })
+        )
+    });
+    
   });
 });

@@ -4,6 +4,7 @@
   "description": "bc-nc-news",
   "main": "index.js",
   "scripts": {
+    "test-dbs": "psql -f ./db/test.sql > output.txt",
     "setup-dbs": "psql -f ./db/setup.sql",
     "seed": "node ./db/seeds/run-seed.js",
     "test": "jest",
