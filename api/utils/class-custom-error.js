@@ -6,12 +6,12 @@
 
 class CustomError {
     status;
-    logMessage;
-    body;
-    constructor(status = 500, logMessage = "An Error Occurred", body = {}){
+    msg;
+    details;
+    constructor(status = 500, msg = "An Unspecified Error Occurred", details = {}){
         this.status = status;
-        this.logMessage = logMessage;
-        this.body = body;
+        this.msg = msg;
+        this.details = details;
     }
 }
 
