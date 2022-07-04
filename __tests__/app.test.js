@@ -4,6 +4,7 @@ const db = require("../db/connection.js");
 const request = require("supertest");
 const app = require("../api/app.js");
 const { dropTables } = require("../db/helpers/manage-tables");
+const ERR_MSGS = require("../api/utils/enum-errors")
 
 beforeEach(() => seed(testData));
 
@@ -33,19 +34,20 @@ describe("express app", () => {
           );
         });
     });
-    it('should return uncaught error when table does not exist', async () => {
+    it.only('should call custom error handler when table does not exist', async () => {
         await dropTables();
-        const res = await request(app).get("/api/topics")
-        expect(res.status).toBe(500)
-        expect(res.body.hasOwnProperty("error")).toBe(true);
-        expect(res.body.error.code).toBe("42P01"); 
-    });
-    it('should return custom error when table is length 0', async () => {
-        await db.query('DROP TABLE comments');
-        await db.query('DROP TABLE articles');
-        await db.query('DELETE FROM topics');
-        const res = await request(app).get("/api/topics")
-        expect(res.body.location).toEqual("models/fetchTopics")
+        const {body} = await request(app).get("/api/topics");
+        expect(body).toEqual({
+            status: 500,
+            msg: 'Something went wrong with GET topics :(',
+            code: '42P01',
+            pgDetails: {
+              msg: 'The table or database you tried to reference may not exist',
+              tip: 'Make sure your PSQL server has been spun up and seeded'
+            },
+            add_details: {}
+          }
+        )
     });
   });
 });

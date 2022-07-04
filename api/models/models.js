@@ -1,15 +1,13 @@
 const db = require("../../db/connection.js");
 const CustomError = require("../utils/class-custom-error.js");
+const ERR_MSGS = require("../utils/enum-errors")
 
 exports.fetchTopics = async () => {
-  const text = `SELECT * FROM topics`;
-  const data = await db.query(text);
-  if (data.rows.length === 0) {
-    throw new CustomError(400, "Returned length was zero", {
-      location: "models/fetchTopics",
-      details: "returned a table length of zero when selecting all from topics."
-    });
-  } else {
+    try {
+    const text = `SELECT * FROM topics`;
+    const data = await db.query(text)
     return data.rows;
-  }
+    } catch (err) {
+        throw new CustomError(500, ERR_MSGS.DEFAULT_W_SOURCE("GET topics"), err)
+    };
 };

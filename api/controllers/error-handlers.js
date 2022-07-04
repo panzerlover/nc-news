@@ -7,14 +7,14 @@ exports.pathErrorHandler = (req, res) => {
 
 exports.customErrorHandler = (err, req, res, next) => {
     if (err instanceof CustomError) {
-        console.error(err.msg);
-        res.status(err.status).send(err.details)
+        console.log(err.msg);
+        res.status(err.status).send(err)
     } else {
         next(err)
     }
-
 }
+
 exports.unhandledErrorHandler = (err, req, res, next) => {
-    console.error(err, "<------ unhandled Error");
+    console.log(err, "<------ unhandled Error");
     res.status(500).send({error: err});
 }
