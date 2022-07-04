@@ -12,7 +12,11 @@ const ERR_MSGS = {
         },
         "22P02": {
             msg: "Invalid text representation",
-            tip: "check the data type of your parameter"
+            tip: "check the data type(s) of your parameter/body"
+        },
+        "23502":{
+            msg: "not null violation",
+            tip: "something is missing! check your params/body"
         }
     },
 };

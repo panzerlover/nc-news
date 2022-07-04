@@ -21,3 +21,16 @@ exports.fetchArticleById = async (id) => {
     throw new CustomError(500, ERR_MSGS.DEFAULT_W_SOURCE("GET articles"), err);
   }
 };
+
+exports.updateArticleVotesById = async (id, votes) => {
+    try {
+        const text = `UPDATE articles 
+        SET votes = votes + $2 
+        WHERE article_id = $1
+        RETURNING *;`;
+        const data = await db.query(text, [id, votes])
+        return data.rows[0];
+    } catch (err) {
+        throw new CustomError(500, ERR_MSGS.DEFAULT_W_SOURCE("PATCH articles"), err)
+    }
+}
