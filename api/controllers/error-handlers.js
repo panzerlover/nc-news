@@ -7,7 +7,7 @@ exports.pathErrorHandler = (req, res) => {
 
 exports.customErrorHandler = (err, req, res, next) => {
     if (err instanceof CustomError) {
-        console.log(err.msg);
+        console.log(err.msg + "\n" +err.tip);
         res.status(err.status).send(err)
     } else {
         next(err)

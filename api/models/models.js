@@ -97,6 +97,24 @@ exports.fetchCommentsByArticleId = async (id) => {
   }
 };
 
+exports.addCommentByArticleId = async (id, username, body) => {
+ try {
+
+   const queryStr = `
+   INSERT INTO comments (article_id, author, body, votes)
+   VALUES ($1, $2, $3, 0)
+   RETURNING *;
+   `
+  const data = await db.query(queryStr, [id, username, body])
+
+  return data.rows[0];
+ } catch (err) {
+  if (err instanceof CustomError) throw err
+  throw new CustomError(500, null, null, err)
+ }
+
+}
+
 const checkExists = async (table, column, value, label) => {
   const queryStr = format("SELECT * FROM %I WHERE %I = $1", table, column);
   const data = await db.query(queryStr, [value]);
