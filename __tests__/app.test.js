@@ -256,7 +256,7 @@ describe("express app", () => {
       });
     });
   });
-  describe.only('GET api/articles/:article_id/comments', () => {
+  describe('GET api/articles/:article_id/comments', () => {
     it('status 200: array of comments with only specified article id', async () => {
       const {body: {comments}} = await request(app).get("/api/articles/1/comments")
       expect(comments).toEqual(expect.arrayContaining([
