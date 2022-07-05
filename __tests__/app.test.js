@@ -53,19 +53,17 @@ describe("express app", () => {
   });
   describe("GET /api/articles/:article_id", () => {
     it("status: 200 with correct properties", async () => {
-      const { body, status } = await request(app).get("/api/articles/1");
+      const { body:{article}, status } = await request(app).get("/api/articles/1");
       expect(status).toBe(200);
-      expect(body).toEqual(
-        expect.objectContaining({
-          author: expect.any(String),
-          title: expect.any(String),
-          article_id: expect.any(Number),
-          body: expect.any(String),
-          topic: expect.any(String),
-          created_at: expect.any(String),
-          votes: expect.any(Number),
-        })
-      );
+      expect(article).toEqual({
+        article_id: 1,
+        title: 'Living in the shadow of a great man',
+        topic: 'mitch',
+        author: 'butter_bridge',
+        body: 'I find this existence challenging',
+        created_at: '2020-07-09T20:11:00.000Z',
+        votes: 100
+      });
     });
     it("should return 500 when given article_id that is not a number ", async () => {
       const { body, status } = await request(app).get(
@@ -90,48 +88,46 @@ describe("express app", () => {
     it("status 200: with updated article votes when votes is positive", async () => {
       const input = { inc_votes: 40 };
       const {
-        body: { votes: oldVotes },
+        body: {article: { votes: oldVotes }},
       } = await request(app).get("/api/articles/4");
       const {
-        body: { votes: newVotes },
-        body,
+        body: {article: { votes: newVotes }},
+        body: {article},
         status,
       } = await request(app).patch("/api/articles/4").send(input);
       expect(status).toBe(201);
       expect(newVotes).toBe(oldVotes + input.inc_votes);
-      expect(body).toEqual(
-        expect.objectContaining({
-          author: expect.any(String),
-          title: expect.any(String),
-          article_id: expect.any(Number),
-          body: expect.any(String),
-          topic: expect.any(String),
-          created_at: expect.any(String),
-          votes: expect.any(Number),
-        })
-      );
+      expect(article).toEqual({
+        article_id: 4,
+        title: 'Student SUES Mitch!',
+        topic: 'mitch',
+        author: 'rogersop',
+        body: 'We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages',
+        created_at: '2020-05-06T01:14:00.000Z',
+        votes: 40
+      });
     });
     it("status 200: with updated article votes when votes is negative", async () => {
         const input = { inc_votes: -400 };
         const {
-          body: { votes: oldVotes },
+          body: {article: { votes: oldVotes }},
         } = await request(app).get("/api/articles/4");
         const {
-          body: { votes: newVotes },
-          body,
+          body: {article: { votes: newVotes }},
+          body: {article},
           status,
         } = await request(app).patch("/api/articles/4").send(input);
         expect(status).toBe(201);
         expect(newVotes).toBe(oldVotes + input.inc_votes);
-        expect(body).toEqual(
+        expect(article).toEqual(
           expect.objectContaining({
-            author: expect.any(String),
-            title: expect.any(String),
-            article_id: expect.any(Number),
-            body: expect.any(String),
-            topic: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
+            article_id: 4,
+            title: 'Student SUES Mitch!',
+            topic: 'mitch',
+            author: 'rogersop',
+            body: 'We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages',
+            created_at: '2020-05-06T01:14:00.000Z',
+            votes: -400
           })
         );
       });
