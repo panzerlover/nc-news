@@ -51,17 +51,17 @@ describe("express app", () => {
   });
   describe('GET /api/articles/:article_id', () => {
     it('status: 200 with correct properties', async () => {
-        const { body } = await request(app).get("/api/articles/1")
-        expect(body).toEqual(expect.objectContaining({
-            author: expect.any(String),
-            title: expect.any(String),
-            article_id: expect.any(Number),
-            body: expect.any(String),
-            topic: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number)
+        const { body: {article} } = await request(app).get("/api/articles/1")
+        expect(article).toEqual({
+          article_id: 1,
+          title: 'Living in the shadow of a great man',
+          topic: 'mitch',
+          author: 'butter_bridge',
+          body: 'I find this existence challenging',
+          created_at: '2020-07-09T20:11:00.000Z',
+          votes: 100
         })
-        )
+        
     });
     it('should return 500 when given article_id that is not a number ', async () => {
         const { body } = await request(app).get("/api/articles/1; SELECT * FROM users")
