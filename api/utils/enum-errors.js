@@ -1,6 +1,7 @@
 const ERR_MSGS = {
     DEFAULT: "Something went Wrong :(",
     DEFAULT_W_SOURCE: (source) => `Something went wrong with ${source} :(`,
+    DOES_NOT_EXIST: (value, column) => `${column}: ${value} does not exist`,
     PG: {
         DEFAULT: (code)=>{
             `msg: PG ERROR ${code},
