@@ -224,4 +224,36 @@ describe("express app", () => {
       });
     });
   });
+  describe.only('GET /api/articles', () => {
+    it('status 200: with array of articles', async () => {
+      const {body: {articles}} = await request(app).get("/api/articles")
+      expect(articles).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          article_id: expect.any(Number),
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          comment_count: expect.any(Number)
+      })
+    ]))
+    });
+    it('status 200: sorted in descending order', async () => {
+      const {body: {articles}} = await request(app).get("/api/articles")
+      expect(articles).toBeSortedBy("created_at", {descending: true})
+    });
+    it('status 500: when table does not exist', async () => {
+      await dropTables();
+      const {msg, tip} = ERR_MSGS.PG["42P01"];
+      const { body, status } = await request(app).get("/api/articles");
+      expect(status).toBe(500);
+      expect(body).toEqual({
+        status: 500,
+        msg: msg,
+        tip: tip
+      });
+    });
+  });
 });
