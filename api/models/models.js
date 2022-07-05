@@ -3,6 +3,16 @@ const CustomError = require('../utils/class-custom-error.js');
 const ERR_MSGS = require('../utils/enum-errors');
 const format = require('pg-format');
 
+exports.checkExists = async (table, column, value) => {
+  
+  const queryStr = format('SELECT * FROM %I WHERE %I = $1', table, column);
+  const data = await db.query(queryStr, [value]);
+  if (data.rows.length === 0) {
+    throw new CustomError(404, ERR_MSGS.DOES_NOT_EXIST(value, column), {});
+  }
+
+}
+
 exports.fetchTopics = async () => {
   try {
     const queryStr = `SELECT * FROM topics`;
@@ -49,12 +59,12 @@ exports.updateArticleVotesById = async (id, votes) => {
     }
 }
 
-exports.checkExists = async (table, column, value) => {
-  
-  const queryStr = format('SELECT * FROM %I WHERE %I = $1', table, column);
-  const data = await db.query(queryStr, [value]);
-  if (data.rows.length === 0) {
-    throw new CustomError(404, ERR_MSGS.DOES_NOT_EXIST(value, column), {});
+exports.fetchUsers = async () =>{
+  try {
+    const queryStr = `SELECT * FROM users;`
+    const data = await db.query(queryStr);
+    return data.rows
+  } catch (err) {
+    throw new CustomError(500, ERR_MSGS.DEFAULT_W_SOURCE('GET users'), err)
   }
-
 }
