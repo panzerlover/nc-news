@@ -86,16 +86,14 @@ describe("express app", () => {
         })
       );
     });
-    it('should return 404 when article id does not exist', async () => {
-      const { body, status } = await request(app).get(
-        "/api/articles/9001"
-      );
+    it("should return 404 when article id does not exist", async () => {
+      const { body, status } = await request(app).get("/api/articles/9001");
       expect(status).toBe(404);
       expect(body).toEqual({
         status: 404,
-        msg: 'article_id: 9001 does not exist',
-        pgDetails: { msg: 'no pg code detected' },
-        add_details: {}
+        msg: "article_id: 9001 does not exist",
+        pgDetails: { msg: "no pg code detected" },
+        add_details: {},
       });
     });
   });
@@ -204,15 +202,49 @@ describe("express app", () => {
     });
     it("should return 404 custom error when valid article id but article does not exist", async () => {
       const input = { inc_votes: 10 };
-      const { body, status } = await request(app).patch("/api/articles/9001").send(input);
-      expect(status).toBe(404);  
+      const { body, status } = await request(app)
+        .patch("/api/articles/9001")
+        .send(input);
+      expect(status).toBe(404);
       expect(body).toEqual({
         status: 404,
-        msg: 'article_id: 9001 does not exist',
-        pgDetails: { msg: 'no pg code detected' },
-        add_details: {}
+        msg: "article_id: 9001 does not exist",
+        pgDetails: { msg: "no pg code detected" },
+        add_details: {},
       });
-
+    });
+  });
+  describe.only("GET /api/users", () => {
+    it("status 200: with array of users", async () => {
+      const {
+        body: { users },
+        status,
+      } = await request(app).get("/api/users");
+      expect(status).toBe(200);
+      expect(users).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            username: expect.any(String),
+            name: expect.any(String),
+            avatar_url: expect.any(String),
+          }),
+        ])
+      );
+    });
+    it('status 500: when table does not exist', async () => {
+      await dropTables();
+      const { body, status } = await request(app).get("/api/users");
+      expect(status).toBe(500);
+      expect(body).toEqual({
+        status: 500,
+        msg: "Something went wrong with GET users :(",
+        code: "42P01",
+        pgDetails: {
+          msg: "The table or database you tried to reference may not exist",
+          tip: "Make sure your PSQL server has been spun up and seeded",
+        },
+        add_details: {},
+      });
     });
   });
 });

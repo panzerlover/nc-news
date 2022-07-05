@@ -3,6 +3,7 @@ const {
   getTopics,
   getArticleById,
   patchArticleVotesByArticleId,
+  getUsers,
 } = require("./controllers/controllers");
 const {
   customErrorHandler,
@@ -17,6 +18,8 @@ app.get("/api/topics", getTopics);
 
 app.get("/api/articles/:article_id", getArticleById);
 app.patch("/api/articles/:article_id", patchArticleVotesByArticleId);
+
+app.get("/api/users", getUsers);
 
 app.use("*", pathErrorHandler);
 app.use(customErrorHandler);
