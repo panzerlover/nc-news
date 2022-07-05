@@ -1,22 +1,25 @@
 const ERR_MSGS = {
     DEFAULT: "Something went Wrong :(",
-    DEFAULT_W_SOURCE: (source) => `Something went wrong with ${source} :(`,
-    DOES_NOT_EXIST: (value, column) => `${column}: ${value} does not exist`,
+    DOES_NOT_EXIST: (value, helper) => { return {
+        msg: `${helper}: ${value} does not exist`,
+        tip: `try a different ${helper}`
+        }
+    },
     PG: {
-        DEFAULT: (code)=>{
-            `msg: PG ERROR ${code},
-            tip: please refer to the psql website for more details https://www.postgresql.org/docs/current/errcodes-appendix.html`
+        DEFAULT: {
+            msg: "Unspecified Server Error",
+            tip: "Contact the website admin"
         },
         "42P01": {
-            msg: "The table or database you tried to reference may not exist",
-            tip: "Make sure your PSQL server has been spun up and seeded"
+            msg: "Unable to access Table or Database",
+            tip: "The server may be down. Please contact the website admin"
         },
         "22P02": {
-            msg: "Invalid text representation",
+            msg: "Invalid Data type",
             tip: "check the data type(s) of your parameter/body"
         },
         "23502":{
-            msg: "not null violation",
+            msg: "Null value",
             tip: "something is missing! check your params/body"
         }
     },
