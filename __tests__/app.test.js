@@ -68,7 +68,7 @@ describe("express app", () => {
         votes: 100,
       });
     });
-    it("should return 500 when given article_id that is not a number ", async () => {
+    it("should return 400 when given article_id that is not a number ", async () => {
       const { body, status } = await request(app).get(
         "/api/articles/1; SELECT * FROM users"
       );
