@@ -214,7 +214,7 @@ describe("express app", () => {
       });
     });
   });
-  describe.only("GET /api/users", () => {
+  describe("GET /api/users", () => {
     it("status 200: with array of users", async () => {
       const {
         body: { users },
