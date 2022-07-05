@@ -72,10 +72,10 @@ describe("express app", () => {
       const { body, status } = await request(app).get(
         "/api/articles/1; SELECT * FROM users"
       );
-      expect(status).toBe(500);
+      expect(status).toBe(400);
       expect(body).toEqual(
         expect.objectContaining({
-          status: 500,
+          status: 400,
           msg: "Something went wrong with GET articles :(",
           code: "22P02",
           pgDetails: {
@@ -156,9 +156,9 @@ describe("express app", () => {
     });
     it("should return/handle error caused by sending empty body", async () => {
       const { body, status } = await request(app).patch("/api/articles/4");
-      expect(status).toBe(500);
+      expect(status).toBe(400);
       expect(body).toEqual({
-        status: 500,
+        status: 400,
         msg: "Something went wrong with PATCH articles :(",
         code: "23502",
         pgDetails: {
@@ -173,9 +173,9 @@ describe("express app", () => {
       const { body, status } = await request(app)
         .patch("/api/articles/1")
         .send(input);
-      expect(status).toBe(500);
+      expect(status).toBe(400);
       expect(body).toEqual({
-        status: 500,
+        status: 400,
         msg: "Something went wrong with PATCH articles :(",
         code: "22P02",
         pgDetails: {
@@ -190,9 +190,9 @@ describe("express app", () => {
       const { body, status } = await request(app)
         .patch("/api/articles/banana")
         .send(input);
-      expect(status).toBe(500);
+      expect(status).toBe(400);
       expect(body).toEqual({
-        status: 500,
+        status: 400,
         msg: "Something went wrong with PATCH articles :(",
         code: "22P02",
         pgDetails: {

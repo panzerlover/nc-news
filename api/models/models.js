@@ -26,7 +26,7 @@ exports.fetchArticleById = async (id) => {
   } catch (err) {
 
     if (err instanceof CustomError) throw err;
-    throw new CustomError(500, ERR_MSGS.DEFAULT_W_SOURCE('GET articles'), err);
+    throw new CustomError(400, ERR_MSGS.DEFAULT_W_SOURCE('GET articles'), err);
   }
 };
 
@@ -45,7 +45,7 @@ exports.updateArticleVotesById = async (id, votes) => {
         return data.rows[0];
     } catch (err) {
         if (err instanceof CustomError) throw err;
-        throw new CustomError(500, ERR_MSGS.DEFAULT_W_SOURCE('PATCH articles'), err)
+        throw new CustomError(400, ERR_MSGS.DEFAULT_W_SOURCE('PATCH articles'), err)
     }
 }
 
