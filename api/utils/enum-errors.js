@@ -1,6 +1,7 @@
 const ERR_MSGS = {
     DEFAULT: "Something went Wrong :(",
     DEFAULT_W_SOURCE: (source) => `Something went wrong with ${source} :(`,
+    DOES_NOT_EXIST: (value, column) => `${column}: ${value} does not exist`,
     PG: {
         DEFAULT: (code)=>{
             `msg: PG ERROR ${code},
@@ -12,7 +13,11 @@ const ERR_MSGS = {
         },
         "22P02": {
             msg: "Invalid text representation",
-            tip: "check the data type of your parameter"
+            tip: "check the data type(s) of your parameter/body"
+        },
+        "23502":{
+            msg: "not null violation",
+            tip: "something is missing! check your params/body"
         }
     },
 };
