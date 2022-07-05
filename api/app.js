@@ -1,5 +1,5 @@
 const express = require("express");
-const { getTopics } = require("./controllers/controllers");
+const { getTopics, getArticleById } = require("./controllers/controllers");
 const {
   customErrorHandler,
   unhandledErrorHandler,
@@ -10,6 +10,8 @@ const app = express();
 app.use(express.json());
 
 app.get("/api/topics", getTopics);
+
+app.get("/api/articles/:article_id", getArticleById);
 
 app.use("*", pathErrorHandler);
 app.use(customErrorHandler);

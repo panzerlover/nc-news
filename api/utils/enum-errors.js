@@ -9,6 +9,10 @@ const ERR_MSGS = {
         "42P01": {
             msg: "The table or database you tried to reference may not exist",
             tip: "Make sure your PSQL server has been spun up and seeded"
+        },
+        "22P02": {
+            msg: "Invalid text representation",
+            tip: "check the data type of your parameter"
         }
     },
 };

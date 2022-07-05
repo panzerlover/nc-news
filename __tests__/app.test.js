@@ -4,7 +4,6 @@ const db = require("../db/connection.js");
 const request = require("supertest");
 const app = require("../api/app.js");
 const { dropTables } = require("../db/helpers/manage-tables");
-const ERR_MSGS = require("../api/utils/enum-errors")
 
 beforeEach(() => seed(testData));
 
@@ -34,7 +33,7 @@ describe("express app", () => {
           );
         });
     });
-    it.only('should call custom error handler when table does not exist', async () => {
+    it('should call custom error handler when table does not exist', async () => {
         await dropTables();
         const {body} = await request(app).get("/api/topics");
         expect(body).toEqual({
@@ -49,5 +48,35 @@ describe("express app", () => {
           }
         )
     });
+  });
+  describe('GET /api/articles/:article_id', () => {
+    it('status: 200 with correct properties', async () => {
+        const { body: {article} } = await request(app).get("/api/articles/1")
+        expect(article).toEqual({
+          article_id: 1,
+          title: 'Living in the shadow of a great man',
+          topic: 'mitch',
+          author: 'butter_bridge',
+          body: 'I find this existence challenging',
+          created_at: '2020-07-09T20:11:00.000Z',
+          votes: 100
+        })
+        
+    });
+    it('should return 500 when given article_id that is not a number ', async () => {
+        const { body } = await request(app).get("/api/articles/1; SELECT * FROM users")
+        expect(body).toEqual(expect.objectContaining({
+                status: 500,
+                msg: 'Something went wrong with GET articles :(',
+                code: '22P02',
+                pgDetails: {
+                    msg: "Invalid text representation",
+                    tip: "check the data type of your parameter"
+                },
+                add_details: {}
+        })
+        )
+    });
+    
   });
 });
