@@ -24,13 +24,11 @@ exports.fetchArticles = async () => {
     ORDER BY articles.created_at DESC;
     `;
     const data = await db.query(queryStr);
-    return data.rows; 
-
+    return data.rows;
   } catch (err) {
     throw new CustomError(500, null, null, err);
   }
-
-}
+};
 
 exports.fetchArticleById = async (id) => {
   try {
@@ -54,9 +52,9 @@ exports.fetchArticleById = async (id) => {
 exports.updateArticleVotesById = async (id, votes) => {
   try {
     const queryStr = `UPDATE articles 
-        SET votes = votes + $2 
-        WHERE article_id = $1
-        RETURNING *;`;
+    SET votes = votes + $2 
+    WHERE article_id = $1
+    RETURNING *;`;
     const data = await db.query(queryStr, [id, votes]);
 
     if (!data.rows.length) {
@@ -77,6 +75,25 @@ exports.fetchUsers = async () => {
     return data.rows;
   } catch (err) {
     throw new CustomError(500, null, null, err);
+  }
+};
+
+exports.fetchCommentsByArticleId = async (id) => {
+  try {
+    const queryStr = `
+    SELECT * FROM comments
+    WHERE article_id = $1
+    ;`;
+    const data = await db.query(queryStr, [id]);
+
+    if (!data.rows.length) {
+      await checkExists("articles", "article_id", id, "article");
+    }
+
+    return data.rows;
+  } catch (err) {
+    if (err instanceof CustomError) throw err;
+    throw new CustomError(400, null, null, err);
   }
 };
 
