@@ -12,7 +12,7 @@ const ERR_MSGS = {
             status: 500,
         },
         "42P01": {
-            msg: "Unable to access Table or Database",
+            msg: "Unable to access resource",
             tip: "The server may be down. Please contact the website admin",
             status: 500
         },
@@ -22,10 +22,15 @@ const ERR_MSGS = {
             status: 400,
         },
         "23502":{
-            msg: "Null value",
-            tip: "something is missing! check your params/body",
+            msg: "Missing Value",
+            tip: "Something critical was missing from your request. Please check your parameters/body and the documentation before trying again",
             status: 400,
-        }
+        },
+        "23503": {
+            msg: "Bad Request",
+            tip: "Something in your params/body isn't quite right. It's possible something is missing, or incorrect.",
+            status: 400,
+          },
     },
-};
+}
 module.exports = ERR_MSGS;
