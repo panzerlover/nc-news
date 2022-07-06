@@ -13,6 +13,25 @@ exports.fetchTopics = async () => {
   }
 };
 
+exports.fetchArticles = async () => {
+  try {
+    const queryStr = `
+    SELECT articles.*, 
+    CAST(COUNT(comment_id) AS INTEGER) AS comment_count 
+    FROM articles 
+    LEFT JOIN comments USING (article_id)
+    GROUP BY article_id
+    ORDER BY articles.created_at DESC;
+    `;
+    const data = await db.query(queryStr);
+    return data.rows; 
+
+  } catch (err) {
+    throw new CustomError(500, null, null, err);
+  }
+
+}
+
 exports.fetchArticleById = async (id) => {
   try {
     const queryStr = `SELECT articles.*, CAST(COUNT(comment_id) AS INTEGER) AS comment_count 
