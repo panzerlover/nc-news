@@ -1,6 +1,18 @@
 {
   "GET /api": {
-    "description": "serves up a json representation of all the available endpoints of the api"
+    "description": "serves up a json representation of all the available endpoints of the api",
+    "queries": [],
+    "exampleResponse": {
+      "endpoints": {
+        "GET /api/topics": {
+          "description": "serves an array of all topics",
+          "queries": [],
+          "exampleResponse": {
+            "topics": [{ "slug": "football", "description": "Footie!" }]
+          }
+        }
+      }
+    }
   },
   "GET /api/topics": {
     "description": "serves an array of all topics",
@@ -10,16 +22,98 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "description": "serves an array of all articles, with option to filter by topic or sort by any column header",
+    "queries": ["topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
         {
-          "title": "Seafood substitutions are increasing",
-          "topic": "cooking",
-          "author": "weegembump",
-          "body": "Text from the article..",
-          "created_at": 1527695953341
+          "article_id": 1,
+          "title": "Living in the shadow of a great man",
+          "topic": "mitch",
+          "author": "butter_bridge",
+          "body": "I find this existence challenging",
+          "created_at": "2020-07-09T20:11:00.000Z",
+          "votes": 100,
+          "comment_count": 11
+        }
+      ]
+    }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "serves up the specified article",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "article_id": 1,
+        "title": "Living in the shadow of a great man",
+        "topic": "mitch",
+        "author": "butter_bridge",
+        "body": "I find this existence challenging",
+        "created_at": "2020-07-09T20:11:00.000Z",
+        "votes": 100,
+        "comment_count": 11
+      }
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "adds or removes votes to the specified article, serves up the article",
+    "queries": ["inc_votes"],
+    "exampleResponse": {
+      "article": {
+        "article_id": 4,
+        "title": "Student SUES Mitch!",
+        "topic": "mitch",
+        "author": "rogersop",
+        "body": "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
+        "created_at": "2020-05-06T01:14:00.000Z",
+        "votes": 40
+      }
+    }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves up all comments for the specified article",
+    "queries": [],
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 2,
+          "body": "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+          "article_id": 1,
+          "author": "butter_bridge",
+          "votes": 14,
+          "created_at": "2020-10-31T03:03:00.000Z"
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "adds a comment to the database, linked to the specified article. Serves up the posted comment",
+    "queries": [],
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 19,
+        "body": "me no like",
+        "article_id": 1,
+        "author": "lurker",
+        "votes": 0,
+        "created_at": "2022-07-06T11:23:06.295Z"
+      }
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes the specified comment",
+    "queries": [],
+    "exampleResponse": {}
+  },
+  "GET /api/users": {
+    "description": "serves up an array of users",
+    "queries": [],
+    "exampleResponse": {
+      "users": [
+        {
+          "username": "exampleUsername",
+          "name": "exampleName",
+          "avatar_url": "https://example.com"
         }
       ]
     }

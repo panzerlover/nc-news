@@ -273,33 +273,43 @@ describe("express app", () => {
       }
     });
     it("status 200: accepts ascending order query", async () => {
-      const { body: {articles} } = await request(app)
-      .get("/api/articles")
-      .query({order: "asc"});
-      expect(articles).toBeSortedBy("created_at", {ascending: true});
+      const {
+        body: { articles },
+      } = await request(app).get("/api/articles").query({ order: "asc" });
+      expect(articles).toBeSortedBy("created_at", { ascending: true });
     });
-    it('status 200: accepts sort_by AND order query', async () => {
-      const { body: {articles} } = await request(app)
-      .get("/api/articles")
-      .query({sort_by: "title", order: "asc"});
-      expect(articles).toBeSortedBy("created_at", {ascending: true, coerce: true});
+    it("status 200: accepts sort_by AND order query", async () => {
+      const {
+        body: { articles },
+      } = await request(app)
+        .get("/api/articles")
+        .query({ sort_by: "title", order: "asc" });
+      expect(articles).toBeSortedBy("created_at", {
+        ascending: true,
+        coerce: true,
+      });
     });
-    it('status 200: accepts topic query', async () => {
-      const {body: {articles}} = await request(app)
-      .get("/api/articles")
-      .query({topic: "mitch"});
-      articles.forEach((article)=>{
+    it("status 200: accepts topic query", async () => {
+      const {
+        body: { articles },
+      } = await request(app).get("/api/articles").query({ topic: "mitch" });
+      articles.forEach((article) => {
         expect(article.topic).toBe("mitch");
-      })
+      });
     });
-    it('status 200: accepts valid sort_by, order, and topic queries', async () => {
-      const { body: {articles} } = await request(app)
-      .get("/api/articles")
-      .query({sort_by: "title", order: "asc", topic: "mitch"});
-      expect(articles).toBeSortedBy("created_at", {ascending: true, coerce: true})
-      articles.forEach((article)=> {
-        expect(article.topic).toBe("mitch")
-      })
+    it("status 200: accepts valid sort_by, order, and topic queries", async () => {
+      const {
+        body: { articles },
+      } = await request(app)
+        .get("/api/articles")
+        .query({ sort_by: "title", order: "asc", topic: "mitch" });
+      expect(articles).toBeSortedBy("created_at", {
+        ascending: true,
+        coerce: true,
+      });
+      articles.forEach((article) => {
+        expect(article.topic).toBe("mitch");
+      });
     });
     it("status 400: rejects invalid order", async () => {
       const { body } = await request(app)
@@ -315,10 +325,10 @@ describe("express app", () => {
       const errBody = ERR_MSGS.INVALID_QUERY;
       expect(body).toEqual(errBody);
     });
-    it('status 404: when topic does not exist', async () => {
-      const {body} = await request(app)
-      .get("/api/articles")
-      .query({topic: "non-existent topic"});
+    it("status 404: when topic does not exist", async () => {
+      const { body } = await request(app)
+        .get("/api/articles")
+        .query({ topic: "non-existent topic" });
       const errObj = ERR_MSGS.DOES_NOT_EXIST;
       expect(body).toEqual(errObj);
     });
@@ -391,7 +401,7 @@ describe("express app", () => {
     });
   });
   describe("POST /api/articles/:article_id/comments", () => {
-    it("status: 201 with added comment", async () => {
+    it.only("status: 201 with added comment", async () => {
       const input = { username: "lurker", body: "me no like" };
       const {
         body: { comment },
@@ -490,21 +500,35 @@ describe("express app", () => {
       });
     });
   });
-  describe('DELETE /api/comments/:comment_id', () => {
-    it('status 204: and no content when valid comment_id', async () => {
-      const {body, status} = await request(app).delete("/api/comments/1")
+  describe("DELETE /api/comments/:comment_id", () => {
+    it("status 204: and no content when valid comment_id", async () => {
+      const { body, status } = await request(app).delete("/api/comments/1");
       expect(status).toBe(204);
       expect(body).toEqual({});
     });
-    it('status 400: invalid comment ', async () => {
+    it("status 400: invalid comment ", async () => {
       const errBody = ERR_MSGS.PG["22P02"];
-      const {body} = await request(app).delete("/api/comments/1; SELECT * FROM users;")
+      const { body } = await request(app).delete(
+        "/api/comments/1; SELECT * FROM users;"
+      );
       expect(body).toEqual(errBody);
     });
-    it('status 404: comment does not exist', async  () => {
+    it("status 404: comment does not exist", async () => {
       const errBody = ERR_MSGS.DOES_NOT_EXIST;
-      const {body} = await request(app).delete("/api/comments/9001");
+      const { body } = await request(app).delete("/api/comments/9001");
       expect(body).toEqual(errBody);
+    });
+  });
+  describe("GET /api", () => {
+    it("status 200: responds with array of endpoints", async () => {
+      const { body: {endpoints}} = await request(app).get("/api");
+      Object.keys(endpoints).forEach((endpoint)=>{
+        expect(endpoints[endpoint]).toEqual(expect.objectContaining({
+          description: expect.any(String),
+          queries: expect.any(Array),
+          exampleResponse: expect.any(Object),
+        }))
+      })
     });
   });
 });
