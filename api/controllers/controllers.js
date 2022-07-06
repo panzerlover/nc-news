@@ -6,6 +6,7 @@ const {
   fetchArticles,
   fetchCommentsByArticleId,
   addCommentByArticleId,
+  retireCommentByCommentId,
 } = require("../models/models");
 
 exports.getTopics = (req, res, next) => {
@@ -19,13 +20,14 @@ exports.getTopics = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-   const {sort_by, order, topic} = req.query;
-    fetchArticles(sort_by, order, topic)
-    .then((articles)=> {
-        res.status(200).send({articles: articles })
-    }).catch((err)=> {
-        next(err);
+  const { sort_by, order, topic } = req.query;
+  fetchArticles(sort_by, order, topic)
+    .then((articles) => {
+      res.status(200).send({ articles: articles });
     })
+    .catch((err) => {
+      next(err);
+    });
 };
 
 exports.getArticleById = (req, res, next) => {
@@ -71,13 +73,24 @@ exports.getCommentsByArticleId = (req, res, next) => {
       next(err);
     });
 };
-
-exports.postCommentByArticleId = (req, res, next) =>{
-    const {article_id} = req.params;
-    const {username, body} = req.body;
-    addCommentByArticleId(article_id, username, body).then((comment) => {
-        res.status(201).send({comment: comment})
-    }).catch((err)=>{
-        next(err)
+exports.postCommentByArticleId = (req, res, next) => {
+  const { article_id } = req.params;
+  const { username, body } = req.body;
+  addCommentByArticleId(article_id, username, body)
+    .then((comment) => {
+      res.status(201).send({ comment: comment });
     })
-}
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.deleteCommentByCommentId = (req, res, next) => {
+  const { comment_id } = req.params;
+  retireCommentByCommentId(comment_id).then(() => {
+    res.status(204).end();
+  })
+  .catch((err)=>{
+    next(err)
+  });
+};

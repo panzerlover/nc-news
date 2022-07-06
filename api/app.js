@@ -7,6 +7,7 @@ const {
   getArticles,
   getCommentsByArticleId,
   postCommentByArticleId,
+  deleteCommentByCommentId,
 } = require("./controllers/controllers");
 const {
   customErrorHandler,
@@ -19,12 +20,14 @@ app.use(express.json());
 
 app.get("/api/topics", getTopics);
 
-app.get("/api/articles", getArticles)
+app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id", getArticleById);
 app.patch("/api/articles/:article_id", patchArticleVotesByArticleId);
 
-app.get("/api/articles/:article_id/comments", getCommentsByArticleId)
-app.post("/api/articles/:article_id/comments", postCommentByArticleId)
+app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
+app.post("/api/articles/:article_id/comments", postCommentByArticleId);
+
+app.delete("/api/comments/:comment_id", deleteCommentByCommentId);
 
 app.get("/api/users", getUsers);
 
