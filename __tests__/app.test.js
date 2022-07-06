@@ -401,7 +401,7 @@ describe("express app", () => {
     });
   });
   describe("POST /api/articles/:article_id/comments", () => {
-    it.only("status: 201 with added comment", async () => {
+    it("status: 201 with added comment", async () => {
       const input = { username: "lurker", body: "me no like" };
       const {
         body: { comment },
