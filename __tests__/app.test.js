@@ -225,7 +225,7 @@ describe("express app", () => {
       });
     });
   });
-  describe.only("GET /api/articles", () => {
+  describe("GET /api/articles", () => {
     it("status 200: with array of articles", async () => {
       const {
         body: { articles },
@@ -272,25 +272,11 @@ describe("express app", () => {
         });
       }
     });
-    it("status 400: rejects invalid sort_by column", async () => {
-      const { body } = await request(app)
-        .get("/api/articles")
-        .query({ sort_by: "age; SELECT * FROM users" });
-      const errBody = ERR_MSGS.INVALID_QUERY;
-      expect(body).toEqual(errBody);
-    });
     it("status 200: accepts ascending order query", async () => {
       const { body: {articles} } = await request(app)
       .get("/api/articles")
       .query({order: "asc"});
       expect(articles).toBeSortedBy("created_at", {ascending: true});
-    });
-    it("status 400: rejects invalid order", async () => {
-      const { body } = await request(app)
-        .get("/api/articles")
-        .query({ order: "desc; SELECT * FROM users" });
-      const errBody = ERR_MSGS.INVALID_QUERY;
-      expect(body).toEqual(errBody);
     });
     it('status 200: accepts sort_by AND order query', async () => {
       const { body: {articles} } = await request(app)
@@ -314,6 +300,20 @@ describe("express app", () => {
       articles.forEach((article)=> {
         expect(article.topic).toBe("mitch")
       })
+    });
+    it("status 400: rejects invalid order", async () => {
+      const { body } = await request(app)
+        .get("/api/articles")
+        .query({ order: "desc; SELECT * FROM users" });
+      const errBody = ERR_MSGS.INVALID_QUERY;
+      expect(body).toEqual(errBody);
+    });
+    it("status 400: rejects invalid sort_by column", async () => {
+      const { body } = await request(app)
+        .get("/api/articles")
+        .query({ sort_by: "age; SELECT * FROM users" });
+      const errBody = ERR_MSGS.INVALID_QUERY;
+      expect(body).toEqual(errBody);
     });
     it('status 404: when topic does not exist', async () => {
       const {body} = await request(app)
