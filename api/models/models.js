@@ -58,7 +58,7 @@ exports.updateArticleVotesById = async (id, votes) => {
     const data = await db.query(queryStr, [id, votes]);
 
     if (!data.rows.length) {
-      await checkExists("articles", "article_id", id, "article");
+      await checkExists("articles", "article_id", id);
     }
 
     return data.rows[0];
@@ -87,7 +87,7 @@ exports.fetchCommentsByArticleId = async (id) => {
     const data = await db.query(queryStr, [id]);
 
     if (!data.rows.length) {
-      await checkExists("articles", "article_id", id, "article");
+      await checkExists("articles", "article_id", id);
     }
 
     return data.rows;
@@ -98,28 +98,29 @@ exports.fetchCommentsByArticleId = async (id) => {
 };
 
 exports.addCommentByArticleId = async (id, username, body) => {
- try {
-
-   const queryStr = `
+  try {
+    const queryStr = `
    INSERT INTO comments (article_id, author, body, votes)
    VALUES ($1, $2, $3, 0)
    RETURNING *;
-   `
-  const data = await db.query(queryStr, [id, username, body])
+   `;
+    const data = await db.query(queryStr, [id, username, body]);
 
-  return data.rows[0];
- } catch (err) {
-  if (err instanceof CustomError) throw err
-  throw new CustomError(500, null, null, err)
- }
+    return data.rows[0];
+  } catch (err) {
+    if (err.code === "23503") {
+      await checkExists("users", "username", username);
+      await checkExists("articles", "article_id", id);
+    }
+    throw new CustomError(500, null, null, err);
+  }
+};
 
-}
-
-const checkExists = async (table, column, value, label) => {
+const checkExists = async (table, column, value) => {
   const queryStr = format("SELECT * FROM %I WHERE %I = $1", table, column);
   const data = await db.query(queryStr, [value]);
   if (data.rows.length === 0) {
-    const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST(value, label);
-    throw new CustomError(404, msg, tip, {});
+    const { msg, tip, status } = ERR_MSGS.DOES_NOT_EXIST;
+    throw new CustomError(status, msg, tip, {});
   }
 };

@@ -19,13 +19,12 @@ exports.getTopics = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  fetchArticles()
-    .then((article) => {
-      res.status(200).send({ articles: article });
+    fetchArticles()
+    .then((articles)=> {
+        res.status(200).send({articles: articles })
+    }).catch((err)=> {
+        next(err);
     })
-    .catch((err) => {
-      next(err);
-    });
 };
 
 exports.getArticleById = (req, res, next) => {

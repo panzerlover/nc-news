@@ -82,7 +82,7 @@ describe("express app", () => {
     });
     it("should return 404 when article id does not exist", async () => {
       const { body, status } = await request(app).get("/api/articles/9001");
-      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST(9001, "article");
+      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
       expect(status).toBe(404);
       expect(body).toEqual({
         status: 404,
@@ -184,7 +184,7 @@ describe("express app", () => {
     });
     it("should return 404 custom error when valid article id but article does not exist", async () => {
       const input = { inc_votes: 10 };
-      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST(9001, "article");
+      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST;
       const { body, status } = await request(app)
         .patch("/api/articles/9001")
         .send(input);
@@ -225,25 +225,21 @@ describe("express app", () => {
       });
     });
   });
-  describe("GET /api/articles", () => {
-    it("status 200: with array of articles", async () => {
-      const {
-        body: { articles },
-      } = await request(app).get("/api/articles");
-      expect(articles).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            article_id: expect.any(Number),
-            title: expect.any(String),
-            topic: expect.any(String),
-            author: expect.any(String),
-            body: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-            comment_count: expect.any(Number),
-          }),
-        ])
-      );
+  describe('GET /api/articles', () => {
+    it('status 200: with array of articles', async () => {
+      const {body: {articles}} = await request(app).get("/api/articles")
+      articles.forEach((article)=> expect(article).toEqual(
+        expect.objectContaining({
+          article_id: expect.any(Number),
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          comment_count: expect.any(Number)
+      })
+    ))
     });
     it("status 200: sorted in descending order", async () => {
       const {
@@ -263,29 +259,23 @@ describe("express app", () => {
       });
     });
   });
-  describe("GET api/articles/:article_id/comments", () => {
-    it("status 200: array of comments with only specified article id", async () => {
-      const {
-        body: { comments },
-      } = await request(app).get("/api/articles/1/comments");
-      expect(comments).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            comment_id: expect.any(Number),
-            body: expect.any(String),
-            article_id: 1,
-            author: expect.any(String),
-            votes: expect.any(Number),
-            created_at: expect.any(String),
-          }),
-        ])
-      );
+  describe('GET api/articles/:article_id/comments', () => {
+    it('status 200: array of comments with only specified article id', async () => {
+      const {body: {comments}} = await request(app).get("/api/articles/1/comments")
+      comments.forEach((comment)=> expect(comment).toEqual( 
+        expect.objectContaining({
+        comment_id: expect.any(Number),
+        body: expect.any(String),
+        article_id : 1,
+        author: expect.any(String),
+        votes: expect.any(Number),
+        created_at: expect.any(String)
+      })))
     });
-    it("status 404: valid article_id (no such article id)", async () => {
-      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST(9001, "article");
-      const { body, status } = await request(app).get(
-        "/api/articles/9001/comments"
-      );
+    it('status 404: valid article_id (no such article id)', async () => {
+      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST;
+      const { body, status } = await request(app)
+        .get("/api/articles/9001/comments")
       expect(status).toBe(404);
       expect(body).toEqual({
         status: 404,
@@ -319,7 +309,7 @@ describe("express app", () => {
       });
     });
   });
-  describe.only("POST /api/articles/:article_id/comments", () => {
+  describe("POST /api/articles/:article_id/comments", () => {
     it("status: 201 with added comment", async () => {
       const input = { username: "lurker", body: "me no like" };
       const {
@@ -376,8 +366,8 @@ describe("express app", () => {
         tip: tip
       })
     });
-    it('status 400: user does not exist', async () => {
-      const {msg, tip, status: errStatus} = ERR_MSGS.PG["23503"];
+    it('status 404: user does not exist', async () => {
+      const {msg, tip, status: errStatus} = ERR_MSGS.DOES_NOT_EXIST;
       const input = {username: "hunter2", body: "<insert inside joke>"}
       const { body, status } = await request(app).post(
         "/api/articles/1/comments"
@@ -389,8 +379,8 @@ describe("express app", () => {
         tip: tip
       })
     });
-    it('status 400: article does not exist', async () => {
-      const {msg, tip, status: errStatus} = ERR_MSGS.PG["23503"];
+    it('status 404: article does not exist', async () => {
+      const {msg, tip, status: errStatus} = ERR_MSGS.DOES_NOT_EXIST;
       const input = {username: "lurker", body: "<insert inside joke>"}
       const { body, status } = await request(app).post(
         "/api/articles/9001/comments"
@@ -402,11 +392,11 @@ describe("express app", () => {
         tip: tip
       })
     });
-    it('status 400: invalid username', async () => {
-      const {msg, tip, status: errStatus} = ERR_MSGS.PG["23503"];
+    it('status 404: invalid username (sql injection)', async () => {
+      const {msg, tip, status: errStatus} = ERR_MSGS.DOES_NOT_EXIST;
       const input = {username: "1); SELECT * FROM users", body: "<insert inside joke>"}
       const { body, status } = await request(app).post(
-        "/api/articles/9001/comments"
+        "/api/articles/1/comments"
       ).send(input);
       expect(status).toEqual(errStatus);
       expect(body).toEqual({
