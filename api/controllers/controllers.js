@@ -7,6 +7,7 @@ const {
   fetchCommentsByArticleId,
   addCommentByArticleId,
   retireCommentByCommentId,
+  fetchEndpoints,
 } = require("../models/models");
 
 exports.getTopics = (req, res, next) => {
@@ -87,10 +88,21 @@ exports.postCommentByArticleId = (req, res, next) => {
 
 exports.deleteCommentByCommentId = (req, res, next) => {
   const { comment_id } = req.params;
-  retireCommentByCommentId(comment_id).then(() => {
-    res.status(204).end();
-  })
-  .catch((err)=>{
-    next(err)
-  });
+  retireCommentByCommentId(comment_id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.getEndpoints = (req, res, next) => {
+  fetchEndpoints()
+    .then((endpoints) => {
+      res.status(200).send({endpoints: endpoints});
+    })
+    .catch((err) => {
+      next(err);
+    });
 };

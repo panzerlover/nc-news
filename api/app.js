@@ -8,6 +8,7 @@ const {
   getCommentsByArticleId,
   postCommentByArticleId,
   deleteCommentByCommentId,
+  getEndpoints,
 } = require("./controllers/controllers");
 const {
   customErrorHandler,
@@ -30,6 +31,8 @@ app.post("/api/articles/:article_id/comments", postCommentByArticleId);
 app.delete("/api/comments/:comment_id", deleteCommentByCommentId);
 
 app.get("/api/users", getUsers);
+
+app.get("/api", getEndpoints);
 
 app.use("*", pathErrorHandler);
 app.use(customErrorHandler);

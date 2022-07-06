@@ -6,6 +6,7 @@ const {
   isValidArticleColumn,
   isValidOrder,
 } = require("../utils/input-validators.js");
+const endpoints = require("../../endpoints.json");
 
 exports.fetchTopics = async () => {
   try {
@@ -144,22 +145,29 @@ exports.addCommentByArticleId = async (id, username, body) => {
   }
 };
 
-exports.retireCommentByCommentId = async (id) =>{
+exports.retireCommentByCommentId = async (id) => {
   try {
-  const values = [id];
-  const queryStr = `DELETE FROM comments WHERE comment_id = $1 RETURNING *`;
-  const data = await db.query(queryStr, values);
-  
-  if (!data.rows.length) {
-    await checkExists("comments", "comment_id", id);
-  }
+    const values = [id];
+    const queryStr = `DELETE FROM comments WHERE comment_id = $1 RETURNING *`;
+    const data = await db.query(queryStr, values);
 
+    if (!data.rows.length) {
+      await checkExists("comments", "comment_id", id);
+    }
   } catch (err) {
     if (err instanceof CustomError) throw err;
     throw new CustomError(500, null, null, err);
   }
+};
+exports.fetchEndpoints = async () => {
+  try {
+    const returnedEndPoints = await endpoints;
+    return returnedEndPoints;
+  } catch (err) {
+    throw err;
+  }
 
-}
+};
 
 const checkExists = async (table, column, value) => {
   const queryStr = format("SELECT * FROM %I WHERE %I = $1", table, column);
