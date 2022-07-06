@@ -1,10 +1,10 @@
 const ERR_MSGS = {
     DEFAULT: "Something went Wrong :(",
-    DOES_NOT_EXIST: (value, helper) => { return {
-        msg: `${helper}: ${value} does not exist`,
-        tip: `try a different ${helper}`
-        }
-    },
+    DOES_NOT_EXIST:  {
+        msg: `Resource does not exist!`,
+        tip: `Please check the docs and try again`,
+        status: 404
+        },
     PG: {
         DEFAULT: {
             msg: "Unspecified Server Error",

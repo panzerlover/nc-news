@@ -101,7 +101,7 @@ const checkExists = async (table, column, value, label) => {
   const queryStr = format("SELECT * FROM %I WHERE %I = $1", table, column);
   const data = await db.query(queryStr, [value]);
   if (data.rows.length === 0) {
-    const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST(value, label);
-    throw new CustomError(404, msg, tip, {});
+    const { msg, tip, status } = ERR_MSGS.DOES_NOT_EXIST;
+    throw new CustomError(status, msg, tip, {});
   }
 };
