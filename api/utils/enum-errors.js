@@ -5,6 +5,11 @@ const ERR_MSGS = {
         tip: `Please check the docs and try again`,
         status: 404
         },
+    INVALID_QUERY: {
+        msg: "Bad Request",
+        tip: "Something in your params/body isn't quite right. It's possible something is missing, or incorrect.",
+        status: 400,
+    },
     PG: {
         DEFAULT: {
             msg: "Unspecified Server Error",
