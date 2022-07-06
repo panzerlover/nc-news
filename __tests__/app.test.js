@@ -36,7 +36,7 @@ describe("express app", () => {
           );
         });
     });
-    it("should call custom error handler when table does not exist", async () => {
+    it("status 500: when table or db does not exist", async () => {
       await dropTables();
       const { body, status } = await request(app).get("/api/topics");
       const { msg, tip } = ERR_MSGS.PG["42P01"];
@@ -184,7 +184,7 @@ describe("express app", () => {
     });
     it("should return 404 custom error when valid article id but article does not exist", async () => {
       const input = { inc_votes: 10 };
-      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST;
+      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
       const { body, status } = await request(app)
         .patch("/api/articles/9001")
         .send(input);
@@ -225,27 +225,102 @@ describe("express app", () => {
       });
     });
   });
-  describe('GET /api/articles', () => {
-    it('status 200: with array of articles', async () => {
-      const {body: {articles}} = await request(app).get("/api/articles")
-      articles.forEach((article)=> expect(article).toEqual(
-        expect.objectContaining({
-          article_id: expect.any(Number),
-          title: expect.any(String),
-          topic: expect.any(String),
-          author: expect.any(String),
-          body: expect.any(String),
-          created_at: expect.any(String),
-          votes: expect.any(Number),
-          comment_count: expect.any(Number)
-      })
-    ))
+  describe.only("GET /api/articles", () => {
+    it("status 200: with array of articles", async () => {
+      const {
+        body: { articles },
+      } = await request(app).get("/api/articles");
+      articles.forEach((article) =>
+        expect(article).toEqual(
+          expect.objectContaining({
+            article_id: expect.any(Number),
+            title: expect.any(String),
+            topic: expect.any(String),
+            author: expect.any(String),
+            body: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            comment_count: expect.any(Number),
+          })
+        )
+      );
     });
-    it("status 200: sorted in descending order", async () => {
+    it("status 200: sorted by created_at in descending order by default", async () => {
       const {
         body: { articles },
       } = await request(app).get("/api/articles");
       expect(articles).toBeSortedBy("created_at", { descending: true });
+    });
+    it("status 200: accepts alternate sort_by queries ", async () => {
+      const columns = [
+        "title",
+        "topic",
+        "author",
+        "body",
+        "created_at",
+        "votes",
+      ];
+      for (let i = 0; i < columns.length; i++) {
+        const {
+          body: { articles },
+        } = await request(app)
+          .get("/api/articles")
+          .query({ sort_by: columns[i] });
+        expect(articles).toBeSortedBy(columns[i], {
+          descending: true,
+          coerce: true,
+        });
+      }
+    });
+    it("status 400: rejects invalid sort_by column", async () => {
+      const { body } = await request(app)
+        .get("/api/articles")
+        .query({ sort_by: "age; SELECT * FROM users" });
+      const errBody = ERR_MSGS.INVALID_QUERY;
+      expect(body).toEqual(errBody);
+    });
+    it("status 200: accepts ascending order query", async () => {
+      const { body: {articles} } = await request(app)
+      .get("/api/articles")
+      .query({order: "asc"});
+      expect(articles).toBeSortedBy("created_at", {ascending: true});
+    });
+    it("status 400: rejects invalid order", async () => {
+      const { body } = await request(app)
+        .get("/api/articles")
+        .query({ order: "desc; SELECT * FROM users" });
+      const errBody = ERR_MSGS.INVALID_QUERY;
+      expect(body).toEqual(errBody);
+    });
+    it('status 200: accepts sort_by AND order query', async () => {
+      const { body: {articles} } = await request(app)
+      .get("/api/articles")
+      .query({sort_by: "title", order: "asc"});
+      expect(articles).toBeSortedBy("created_at", {ascending: true, coerce: true});
+    });
+    it('status 200: accepts topic query', async () => {
+      const {body: {articles}} = await request(app)
+      .get("/api/articles")
+      .query({topic: "mitch"});
+      articles.forEach((article)=>{
+        expect(article.topic).toBe("mitch");
+      })
+    });
+    it('status 200: accepts valid sort_by, order, and topic queries', async () => {
+      const { body: {articles} } = await request(app)
+      .get("/api/articles")
+      .query({sort_by: "title", order: "asc", topic: "mitch"});
+      expect(articles).toBeSortedBy("created_at", {ascending: true, coerce: true})
+      articles.forEach((article)=> {
+        expect(article.topic).toBe("mitch")
+      })
+    });
+    it('status 404: when topic does not exist', async () => {
+      const {body} = await request(app)
+      .get("/api/articles")
+      .query({topic: "non-existent topic"});
+      const errObj = ERR_MSGS.DOES_NOT_EXIST;
+      expect(body).toEqual(errObj);
     });
     it("status 500: when table does not exist", async () => {
       await dropTables();
@@ -259,23 +334,29 @@ describe("express app", () => {
       });
     });
   });
-  describe('GET api/articles/:article_id/comments', () => {
-    it('status 200: array of comments with only specified article id', async () => {
-      const {body: {comments}} = await request(app).get("/api/articles/1/comments")
-      comments.forEach((comment)=> expect(comment).toEqual( 
-        expect.objectContaining({
-        comment_id: expect.any(Number),
-        body: expect.any(String),
-        article_id : 1,
-        author: expect.any(String),
-        votes: expect.any(Number),
-        created_at: expect.any(String)
-      })))
+  describe("GET api/articles/:article_id/comments", () => {
+    it("status 200: array of comments with only specified article id", async () => {
+      const {
+        body: { comments },
+      } = await request(app).get("/api/articles/1/comments");
+      comments.forEach((comment) =>
+        expect(comment).toEqual(
+          expect.objectContaining({
+            comment_id: expect.any(Number),
+            body: expect.any(String),
+            article_id: 1,
+            author: expect.any(String),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+          })
+        )
+      );
     });
-    it('status 404: valid article_id (no such article id)', async () => {
-      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST;
-      const { body, status } = await request(app)
-        .get("/api/articles/9001/comments")
+    it("status 404: valid article_id (no such article id)", async () => {
+      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
+      const { body, status } = await request(app).get(
+        "/api/articles/9001/comments"
+      );
       expect(status).toBe(404);
       expect(body).toEqual({
         status: 404,
@@ -337,73 +418,76 @@ describe("express app", () => {
       expect(body).toEqual({
         status: errStatus,
         msg: msg,
-        tip: tip
-      })
+        tip: tip,
+      });
     });
     it("status 400: when missing username", async () => {
       const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
-      const input = {body: "me REALLY no like"};
-      const { body, status } = await request(app).post(
-        "/api/articles/1/comments"
-      ).send(input);
+      const input = { body: "me REALLY no like" };
+      const { body, status } = await request(app)
+        .post("/api/articles/1/comments")
+        .send(input);
       expect(status).toEqual(errStatus);
       expect(body).toEqual({
         status: errStatus,
         msg: msg,
-        tip: tip
-      })
+        tip: tip,
+      });
     });
     it("status 400: when missing body", async () => {
       const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
-      const input = {username: "lurker"};
-      const { body, status } = await request(app).post(
-        "/api/articles/1/comments"
-      ).send(input);
+      const input = { username: "lurker" };
+      const { body, status } = await request(app)
+        .post("/api/articles/1/comments")
+        .send(input);
       expect(status).toEqual(errStatus);
       expect(body).toEqual({
         status: errStatus,
         msg: msg,
-        tip: tip
-      })
+        tip: tip,
+      });
     });
-    it('status 404: user does not exist', async () => {
-      const {msg, tip, status: errStatus} = ERR_MSGS.DOES_NOT_EXIST;
-      const input = {username: "hunter2", body: "<insert inside joke>"}
-      const { body, status } = await request(app).post(
-        "/api/articles/1/comments"
-      ).send(input);
+    it("status 404: user does not exist", async () => {
+      const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
+      const input = { username: "hunter2", body: "<insert inside joke>" };
+      const { body, status } = await request(app)
+        .post("/api/articles/1/comments")
+        .send(input);
       expect(status).toEqual(errStatus);
       expect(body).toEqual({
         status: errStatus,
         msg: msg,
-        tip: tip
-      })
+        tip: tip,
+      });
     });
-    it('status 404: article does not exist', async () => {
-      const {msg, tip, status: errStatus} = ERR_MSGS.DOES_NOT_EXIST;
-      const input = {username: "lurker", body: "<insert inside joke>"}
-      const { body, status } = await request(app).post(
-        "/api/articles/9001/comments"
-      ).send(input);
+    it("status 404: article does not exist", async () => {
+      const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
+      const input = { username: "lurker", body: "<insert inside joke>" };
+      const { body, status } = await request(app)
+        .post("/api/articles/9001/comments")
+        .send(input);
       expect(status).toEqual(errStatus);
       expect(body).toEqual({
         status: errStatus,
         msg: msg,
-        tip: tip
-      })
+        tip: tip,
+      });
     });
-    it('status 404: invalid username (sql injection)', async () => {
-      const {msg, tip, status: errStatus} = ERR_MSGS.DOES_NOT_EXIST;
-      const input = {username: "1); SELECT * FROM users", body: "<insert inside joke>"}
-      const { body, status } = await request(app).post(
-        "/api/articles/1/comments"
-      ).send(input);
+    it("status 404: invalid username (sql injection)", async () => {
+      const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
+      const input = {
+        username: "1); SELECT * FROM users",
+        body: "<insert inside joke>",
+      };
+      const { body, status } = await request(app)
+        .post("/api/articles/1/comments")
+        .send(input);
       expect(status).toEqual(errStatus);
       expect(body).toEqual({
         status: errStatus,
         msg: msg,
-        tip: tip
-      })
+        tip: tip,
+      });
     });
   });
 });
