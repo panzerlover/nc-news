@@ -5,6 +5,7 @@ const request = require("supertest");
 const app = require("../api/app.js");
 const { dropTables } = require("../db/helpers/manage-tables");
 const ERR_MSGS = require("../api/utils/enum-errors");
+const endpoints = require("../endpoints.json");
 
 beforeEach(() => seed(testData));
 
@@ -521,14 +522,8 @@ describe("express app", () => {
   });
   describe("GET /api", () => {
     it("status 200: responds with array of endpoints", async () => {
-      const { body: {endpoints}} = await request(app).get("/api");
-      Object.keys(endpoints).forEach((endpoint)=>{
-        expect(endpoints[endpoint]).toEqual(expect.objectContaining({
-          description: expect.any(String),
-          queries: expect.any(Array),
-          exampleResponse: expect.any(Object),
-        }))
-      })
+      const { body: {endpoints: foundEndpoints}} = await request(app).get("/api");
+      expect(foundEndpoints).toEqual(endpoints)
     });
   });
 });

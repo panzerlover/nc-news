@@ -6,7 +6,7 @@ const {
   isValidArticleColumn,
   isValidOrder,
 } = require("../utils/input-validators.js");
-const fs = require("fs/promises");
+const endpoints = require("../../endpoints.json");
 
 exports.fetchTopics = async () => {
   try {
@@ -161,9 +161,8 @@ exports.retireCommentByCommentId = async (id) => {
 };
 exports.fetchEndpoints = async () => {
   try {
-    const path = `${__dirname}/../../endpoints.json`;
-    const endpoints = await fs.readFile(path, "utf-8");
-    return JSON.parse(endpoints);
+    const returnedEndPoints = await endpoints;
+    return returnedEndPoints;
   } catch (err) {
     throw err;
   }
