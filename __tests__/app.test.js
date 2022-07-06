@@ -225,7 +225,7 @@ describe("express app", () => {
       });
     });
   });
-  describe.only("GET /api/articles", () => {
+  describe("GET /api/articles", () => {
     it("status 200: with array of articles", async () => {
       const {
         body: { articles },
@@ -488,6 +488,23 @@ describe("express app", () => {
         msg: msg,
         tip: tip,
       });
+    });
+  });
+  describe('DELETE /api/comments/:comment_id', () => {
+    it('status 204: and no content when valid comment_id', async () => {
+      const {body, status} = await request(app).delete("/api/comments/1")
+      expect(status).toBe(204);
+      expect(body).toEqual({});
+    });
+    it('status 400: invalid comment ', async () => {
+      const errBody = ERR_MSGS.PG["22P02"];
+      const {body} = await request(app).delete("/api/comments/1; SELECT * FROM users;")
+      expect(body).toEqual(errBody);
+    });
+    it('status 404: comment does not exist', async  () => {
+      const errBody = ERR_MSGS.DOES_NOT_EXIST;
+      const {body} = await request(app).delete("/api/comments/9001");
+      expect(body).toEqual(errBody);
     });
   });
 });
