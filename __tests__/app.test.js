@@ -224,7 +224,7 @@ describe("express app", () => {
       });
     });
   });
-  describe.only('GET /api/articles', () => {
+  describe('GET /api/articles', () => {
     it('status 200: with array of articles', async () => {
       const {body: {articles}} = await request(app).get("/api/articles")
       expect(articles).toEqual(expect.arrayContaining([

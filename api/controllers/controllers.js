@@ -18,8 +18,8 @@ exports.getTopics = (req, res, next) => {
 
 exports.getArticles = (req, res, next) => {
     fetchArticles()
-    .then((article)=> {
-        res.status(200).send({articles: article })
+    .then((articles)=> {
+        res.status(200).send({articles: articles })
     }).catch((err)=> {
         next(err);
     })
