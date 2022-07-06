@@ -82,7 +82,7 @@ describe("express app", () => {
     });
     it("should return 404 when article id does not exist", async () => {
       const { body, status } = await request(app).get("/api/articles/9001");
-      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST(9001, "article")
+      const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
       expect(status).toBe(404);
       expect(body).toEqual({
         status: 404,
@@ -183,7 +183,7 @@ describe("express app", () => {
     });
     it("should return 404 custom error when valid article id but article does not exist", async () => {
       const input = { inc_votes: 10 };
-      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST(9001, "article")
+      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST;
       const { body, status } = await request(app)
         .patch("/api/articles/9001")
         .send(input);
@@ -227,7 +227,7 @@ describe("express app", () => {
   describe('GET /api/articles', () => {
     it('status 200: with array of articles', async () => {
       const {body: {articles}} = await request(app).get("/api/articles")
-      expect(articles).toEqual(expect.arrayContaining([
+      articles.forEach((article)=> expect(article).toEqual(
         expect.objectContaining({
           article_id: expect.any(Number),
           title: expect.any(String),
@@ -238,7 +238,7 @@ describe("express app", () => {
           votes: expect.any(Number),
           comment_count: expect.any(Number)
       })
-    ]))
+    ))
     });
     it('status 200: sorted in descending order', async () => {
       const {body: {articles}} = await request(app).get("/api/articles")
@@ -248,6 +248,53 @@ describe("express app", () => {
       await dropTables();
       const {msg, tip} = ERR_MSGS.PG["42P01"];
       const { body, status } = await request(app).get("/api/articles");
+      expect(status).toBe(500);
+      expect(body).toEqual({
+        status: 500,
+        msg: msg,
+        tip: tip
+      });
+    });
+  });
+  describe('GET api/articles/:article_id/comments', () => {
+    it('status 200: array of comments with only specified article id', async () => {
+      const {body: {comments}} = await request(app).get("/api/articles/1/comments")
+      comments.forEach((comment)=> expect(comment).toEqual( 
+        expect.objectContaining({
+        comment_id: expect.any(Number),
+        body: expect.any(String),
+        article_id : 1,
+        author: expect.any(String),
+        votes: expect.any(Number),
+        created_at: expect.any(String)
+      })))
+    });
+    it('status 404: valid article_id (no such article id)', async () => {
+      const {msg, tip} = ERR_MSGS.DOES_NOT_EXIST;
+      const { body, status } = await request(app)
+        .get("/api/articles/9001/comments")
+      expect(status).toBe(404);
+      expect(body).toEqual({
+        status: 404,
+        msg: msg,
+        tip: tip
+      });
+    });
+    it('status 400: invalid article_id (invalid type)', async () => {
+      const {msg,tip} = ERR_MSGS.PG["22P02"]
+      const { body, status } = await request(app)
+        .get("/api/articles/1; SELECT * FROM users/comments")
+      expect(status).toBe(400);
+      expect(body).toEqual({
+        status: 400,
+        msg: msg,
+        tip: tip
+      });
+    });
+    it('status 500: when table does not exist', async () => {
+      await dropTables();
+      const {msg, tip} = ERR_MSGS.PG["42P01"];
+      const { body, status } = await request(app).get("/api/articles/1/comments");
       expect(status).toBe(500);
       expect(body).toEqual({
         status: 500,
