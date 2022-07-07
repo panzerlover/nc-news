@@ -1,4 +1,4 @@
-const { getEndpoints } = require('../controllers/controllers');
+const { getEndpoints } = require('../controllers/endpoint-controller');
 const articleRouter = require('./article-router');
 const commentRouter = require('./comment-router');
 const topicRouter = require('./topic-router');
