@@ -16,10 +16,29 @@ Currently this API is a backend service only - that means the above link opened 
 
 ## Installing Locally
 
+### Cloning the Repository (Repo)
+
+The github page for this repo is located [here](https://github.com/panzerlover/nc-news).
+
+If you don't want to install Git, you can download a zip file containing everything in this repo by navigating to the github page, clicking the green code button and then clicking "Download ZIP" from the dropdown menu.
+
+### Cloning with Git
+
+It is recommended to first install git and clone the repo with terminal commands. [The git documentation has a great guide on how to install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+
+
+Once git has been installed, open up your terminal and navigate to the folder you would like to download the repo into. Then enter the below command in your terminal.
+
+```
+git clone https://github.com/panzerlover/nc-news.git
+```
+ If you would like to fork this repo you can hit the "Fork" button in the top right of the page on github, however you will need a github account to do so. If you do not fork the repo you will not be able to push any of your changes to github as you are not a collaborator on my repo (sorry). 
+
+Once you've forked the repo, you can hit the green Code button on your new github repo to obtain the link to clone via https or ssh.
 
 ### NPM packages
 
-Once forked/clone, open the file and enter `npm install` in the console to install all needed packages.This project was written using node v16.15.1 and functionality in older versions is not gauranteed.
+Once forked/cloned, open the file and enter `npm install` in the console to install all needed packages.This project was written using node v16.15.1 and functionality in older versions is not gauranteed.
 
 To check your version of node, enter `node --version` in the terminal. If nvm is installed you can switch to a newer version with `nvm use 16`. 
 
