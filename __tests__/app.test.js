@@ -534,7 +534,6 @@ describe("express app", () => {
           status,
         } = await request(app).get("/api/users/lurker");
         expect(status).toBe(200);
-        console.log(user)
         expect(user).toEqual({
             username: 'lurker',
             name: 'do_nothing',
