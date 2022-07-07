@@ -1,24 +1,10 @@
 const {
-  fetchTopics,
+  fetchArticles,
   fetchArticleById,
   updateArticleVotesById,
-  fetchUsers,
-  fetchArticles,
   fetchCommentsByArticleId,
   addCommentByArticleId,
-  retireCommentByCommentId,
-  fetchEndpoints,
-} = require("../models/models");
-
-exports.getTopics = (req, res, next) => {
-  fetchTopics()
-    .then((topics) => {
-      res.status(200).send(topics);
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
+} = require("../models/article-model");
 
 exports.getArticles = (req, res, next) => {
   const { sort_by, order, topic } = req.query;
@@ -54,16 +40,6 @@ exports.patchArticleVotesByArticleId = (req, res, next) => {
     });
 };
 
-exports.getUsers = (req, res, next) => {
-  fetchUsers()
-    .then((users) => {
-      res.status(200).send({ users: users });
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
-
 exports.getCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
   fetchCommentsByArticleId(article_id)
@@ -80,27 +56,6 @@ exports.postCommentByArticleId = (req, res, next) => {
   addCommentByArticleId(article_id, username, body)
     .then((comment) => {
       res.status(201).send({ comment: comment });
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
-
-exports.deleteCommentByCommentId = (req, res, next) => {
-  const { comment_id } = req.params;
-  retireCommentByCommentId(comment_id)
-    .then(() => {
-      res.status(204).end();
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
-
-exports.getEndpoints = (req, res, next) => {
-  fetchEndpoints()
-    .then((endpoints) => {
-      res.status(200).send({endpoints: endpoints});
     })
     .catch((err) => {
       next(err);

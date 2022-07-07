@@ -1,22 +1,11 @@
 const db = require("../../db/connection.js");
 const CustomError = require("../utils/class-custom-error.js");
 const ERR_MSGS = require("../utils/enum-errors");
-const format = require("pg-format");
 const {
   isValidArticleColumn,
   isValidOrder,
 } = require("../utils/input-validators.js");
-const endpoints = require("../../endpoints.json");
-
-exports.fetchTopics = async () => {
-  try {
-    const queryStr = `SELECT * FROM topics`;
-    const data = await db.query(queryStr);
-    return data.rows;
-  } catch (err) {
-    throw new CustomError(500, null, null, err);
-  }
-};
+const { checkExists } = require("../utils/utils.js");
 
 exports.fetchArticles = async (
   sort_by = "created_at",
@@ -97,16 +86,6 @@ exports.updateArticleVotesById = async (id, votes) => {
   }
 };
 
-exports.fetchUsers = async () => {
-  try {
-    const queryStr = `SELECT * FROM users;`;
-    const data = await db.query(queryStr);
-    return data.rows;
-  } catch (err) {
-    throw new CustomError(500, null, null, err);
-  }
-};
-
 exports.fetchCommentsByArticleId = async (id) => {
   try {
     const queryStr = `
@@ -142,38 +121,5 @@ exports.addCommentByArticleId = async (id, username, body) => {
       await checkExists("articles", "article_id", id);
     }
     throw new CustomError(500, null, null, err);
-  }
-};
-
-exports.retireCommentByCommentId = async (id) => {
-  try {
-    const values = [id];
-    const queryStr = `DELETE FROM comments WHERE comment_id = $1 RETURNING *`;
-    const data = await db.query(queryStr, values);
-
-    if (!data.rows.length) {
-      await checkExists("comments", "comment_id", id);
-    }
-  } catch (err) {
-    if (err instanceof CustomError) throw err;
-    throw new CustomError(500, null, null, err);
-  }
-};
-exports.fetchEndpoints = async () => {
-  try {
-    const returnedEndPoints = await endpoints;
-    return returnedEndPoints;
-  } catch (err) {
-    throw err;
-  }
-
-};
-
-const checkExists = async (table, column, value) => {
-  const queryStr = format("SELECT * FROM %I WHERE %I = $1", table, column);
-  const data = await db.query(queryStr, [value]);
-  if (data.rows.length === 0) {
-    const { msg, tip, status } = ERR_MSGS.DOES_NOT_EXIST;
-    throw new CustomError(status, msg, tip, {});
   }
 };
