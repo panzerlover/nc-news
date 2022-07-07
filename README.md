@@ -55,11 +55,13 @@ SELECT version();
 
 ### Testing 
 
-The database will automatically be seeded before each test, so a local install is not neccessary. Tests are run with jest, and can be filtered by adding .only to a desired describe block, or via the CLI with `npm test <text to filter>` or `npm t <text to filter>` e.g. `npm t app` to run only the tests in app.test.js. To run all tests, enter `npm test` in the terminal.
+You will need to host the database locally if you want to run the test suite. The test suite automatically seeds the databases before every test, so long as PostgreSQL is installed and spun up (you may need to create the databases first, see below.) Tests are run with jest, and can be filtered by adding .only to a desired describe block, or via the CLI with `npm test <text to filter>` or `npm t <text to filter>` e.g. `npm t app` to run only the tests in app.test.js. To run all tests, enter `npm test` in the terminal.
 
 ### Hosting the Database Locally
 
-If you still wish to install the databases locally, there are scripts included in the package.json to make this simpler. 
+If you want to make your own queries to the databases without going through the test suite, you will need to create and host the 
+
+If you still wish to host the databases locally, there are scripts included in the package.json to make this simpler. 
 
 to create the databases:
 ```
@@ -98,7 +100,7 @@ For the tests to run, you ___must___ create two .env files in the root folder, f
  
  - change *my_database_name* to nc_news
 
-2  .env.test > nc_news_test
+2  .env.test
 
 - change *my_database_name* to nc_news_test
 
