@@ -11,4 +11,4 @@ const runSeed = (dataPointer) => {
   return seed(data).then(() => db.end());
 };
 
-runSeed();
+runSeed(dataPointer);
