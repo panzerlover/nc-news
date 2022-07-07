@@ -21,7 +21,7 @@ describe("express app", () => {
         });
     });
   });
-  describe('topics', () => {
+  describe("topics", () => {
     describe("GET /api/topics", () => {
       it("status: 200 with slug and description properties", () => {
         return request(app)
@@ -51,7 +51,7 @@ describe("express app", () => {
       });
     });
   });
-  describe('articles', () => {
+  describe("articles", () => {
     describe("GET /api/articles/:article_id", () => {
       it("status: 200 with correct properties", async () => {
         const {
@@ -319,6 +319,30 @@ describe("express app", () => {
         });
       });
     });
+    describe.only("POST /api/articles", () => {
+      it("status 201: with created article", async () => {
+        const newArticle = {
+          author: "lurker",
+          title: "AITA for never once brushing my teeth, ever?",
+          body: 'I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?',
+          topic: "mitch",
+        };
+        const {
+          body: { article },
+          status,
+        } = await request(app).post("/api/articles").send(newArticle);
+        expect(status).toBe(201)
+        expect(article).toEqual({
+          article_id: 13,
+          title: 'AITA for never once brushing my teeth, ever?',
+          topic: 'mitch',
+          author: 'lurker',
+          body: 'I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?',
+          created_at: expect.any(String),
+          votes: 0
+        });
+      });
+    });
     describe("GET api/articles/:article_id/comments", () => {
       it("status 200: array of comments with only specified article id", async () => {
         const {
@@ -476,7 +500,7 @@ describe("express app", () => {
       });
     });
   });
-  describe('comments', () => {
+  describe("comments", () => {
     describe("DELETE /api/comments/:comment_id", () => {
       it("status 204: and no content when valid comment_id", async () => {
         const { body, status } = await request(app).delete("/api/comments/1");
@@ -499,7 +523,7 @@ describe("express app", () => {
     describe("PATCH /api/comments/:comment_id", () => {
       it("status 201: with updated comment votes when votes is positive", async () => {
         const input = { inc_votes: 40 };
-        const oldComment =   {
+        const oldComment = {
           body: " I carry a log — yes. Is it funny to you? It is not to me.",
           votes: -100,
           author: "icellusedkars",
@@ -527,7 +551,7 @@ describe("express app", () => {
       });
       it("status 201: with updated comment votes when votes is negative", async () => {
         const input = { inc_votes: -400 };
-        const oldComment =   {
+        const oldComment = {
           body: " I carry a log — yes. Is it funny to you? It is not to me.",
           votes: -100,
           author: "icellusedkars",
@@ -604,7 +628,7 @@ describe("express app", () => {
       });
     });
   });
-  describe('users', () => {
+  describe("users", () => {
     describe("GET /api/users", () => {
       it("status 200: with array of users", async () => {
         const {
@@ -634,20 +658,21 @@ describe("express app", () => {
         });
       });
     });
-    describe('GET /api/users/:username', () => {
-      it('status 200: with specified user', async () => {
+    describe("GET /api/users/:username", () => {
+      it("status 200: with specified user", async () => {
         const {
           body: { user },
           status,
         } = await request(app).get("/api/users/lurker");
         expect(status).toBe(200);
         expect(user).toEqual({
-            username: 'lurker',
-            name: 'do_nothing',
-            avatar_url: 'https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png'
-          });
+          username: "lurker",
+          name: "do_nothing",
+          avatar_url:
+            "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+        });
       });
-      it('status 404: user does not exist', async () => {
+      it("status 404: user does not exist", async () => {
         const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app).get(
           "/api/users/1; SELECT * FROM topics"
@@ -659,7 +684,7 @@ describe("express app", () => {
           tip: tip,
         });
       });
-      it('status 500: table does not exist', async () => {
+      it("status 500: table does not exist", async () => {
         await dropTables();
         const { msg, tip } = ERR_MSGS.PG["42P01"];
         const { body, status } = await request(app).get("/api/users/lurker");
@@ -672,12 +697,14 @@ describe("express app", () => {
       });
     });
   });
-  describe('endpoints', () => {
-      describe("GET /api", () => {
-    it("status 200: responds with array of endpoints", async () => {
-      const { body: {endpoints: foundEndpoints}} = await request(app).get("/api");
-      expect(foundEndpoints).toEqual(endpoints)
+  describe("endpoints", () => {
+    describe("GET /api", () => {
+      it("status 200: responds with array of endpoints", async () => {
+        const {
+          body: { endpoints: foundEndpoints },
+        } = await request(app).get("/api");
+        expect(foundEndpoints).toEqual(endpoints);
+      });
     });
-  });
   });
 });

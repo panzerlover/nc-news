@@ -7,6 +7,7 @@
     "start": "node ./api/listen.js",
     "seed:prod": "NODE_ENV=production DATABASE_URL=$(heroku config:get DATABASE_URL) npm run seed",
     "setup-dbs": "psql -f ./db/setup.sql",
+    "test-dbs": "npm run seed-test && psql -f ./db/test.sql > output.txt",
     "seed-dev": "node ./db/seeds/run-seed.js dev",
     "seed-test": "node ./db/seeds/run-seed.js test",
     "test": "jest",
