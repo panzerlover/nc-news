@@ -12,7 +12,7 @@ exports.retireCommentByCommentId = async (id) => {
         await checkExists("comments", "comment_id", id);
       }
     } catch (err) {
-      if (err instanceof CustomError) throw err;
+
       throw new CustomError(500, null, null, err);
     }
   };
