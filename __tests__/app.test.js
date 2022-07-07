@@ -496,6 +496,113 @@ describe("express app", () => {
         expect(body).toEqual(errBody);
       });
     });
+    describe("PATCH /api/comments/:comment_id", () => {
+      it("status 201: with updated comment votes when votes is positive", async () => {
+        const input = { inc_votes: 40 };
+        const oldComment =   {
+          body: " I carry a log — yes. Is it funny to you? It is not to me.",
+          votes: -100,
+          author: "icellusedkars",
+          article_id: 1,
+          comment_id: 4,
+          created_at: "2020-02-23T12:01:00.000Z",
+        };
+        const {
+          body: {
+            comment: { votes },
+          },
+          body: { comment },
+          status,
+        } = await request(app).patch("/api/comments/4").send(input);
+        expect(status).toBe(201);
+        expect(votes).toBe(oldComment.votes + input.inc_votes);
+        expect(comment).toEqual({
+          body: " I carry a log — yes. Is it funny to you? It is not to me.",
+          votes: -60,
+          author: "icellusedkars",
+          article_id: 1,
+          comment_id: 4,
+          created_at: "2020-02-23T12:01:00.000Z",
+        });
+      });
+      it("status 201: with updated comment votes when votes is negative", async () => {
+        const input = { inc_votes: -400 };
+        const oldComment =   {
+          body: " I carry a log — yes. Is it funny to you? It is not to me.",
+          votes: -100,
+          author: "icellusedkars",
+          article_id: 1,
+          comment_id: 4,
+          created_at: "2020-02-23T12:01:00.000Z",
+        };
+        const {
+          body: {
+            comment: { votes },
+          },
+          body: { comment },
+          status,
+        } = await request(app).patch("/api/comments/4").send(input);
+        expect(status).toBe(201);
+        expect(votes).toBe(oldComment.votes + input.inc_votes);
+        expect(comment).toEqual({
+          body: " I carry a log — yes. Is it funny to you? It is not to me.",
+          votes: -500,
+          author: "icellusedkars",
+          article_id: 1,
+          comment_id: 4,
+          created_at: "2020-02-23T12:01:00.000Z",
+        });
+      });
+      it("400: missing vote body", async () => {
+        const { body, status } = await request(app).patch("/api/comments/4");
+        const { msg, tip } = ERR_MSGS.PG["23502"];
+        expect(status).toBe(400);
+        expect(body).toEqual({
+          status: 400,
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("400: vote is wrong data type", async () => {
+        const input = { inc_votes: "1; SELECT * FROM users;" };
+        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app)
+          .patch("/api/comments/1")
+          .send(input);
+        expect(status).toBe(400);
+        expect(body).toEqual({
+          status: 400,
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("400: invalid comment_id data type", async () => {
+        const input = { inc_votes: 10 };
+        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app)
+          .patch("/api/comments/banana")
+          .send(input);
+        expect(status).toBe(400);
+        expect(body).toEqual({
+          status: 400,
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("should return 404 custom error when valid comment id but comment does not exist", async () => {
+        const input = { inc_votes: 10 };
+        const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
+        const { body, status } = await request(app)
+          .patch("/api/comments/9001")
+          .send(input);
+        expect(status).toBe(404);
+        expect(body).toEqual({
+          status: 404,
+          msg: msg,
+          tip: tip,
+        });
+      });
+    });
   });
   describe('users', () => {
     describe("GET /api/users", () => {
