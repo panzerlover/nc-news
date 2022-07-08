@@ -275,6 +275,53 @@ describe("express app", () => {
           expect(article.topic).toBe("mitch");
         });
       });
+      it('status 200: limits to 10 entries by default', async () => {
+        const {
+          body: { articles },
+          status,
+        } = await request(app).get("/api/articles").query();
+        expect(status).toBe(200);
+        expect(articles).toHaveLength(10);
+      });
+      it('status 200: returns first 10 entries by default', async () => {
+        const input = {sort_by: "article_id", order: "asc"};
+        const {
+          body: { articles },
+          status,
+        } = await request(app).get("/api/articles").query(input)
+        const last = articles[9];
+        expect(status).toBe(200);
+        expect(last.article_id).toBe(10);
+      });
+      it('status 200: accepts limit query', async () => {
+        const input = {limit: 5}
+        const {
+          body: { articles },
+          status,
+        } = await request(app).get("/api/articles").query(input);
+        expect(status).toBe(200);
+        expect(articles).toHaveLength(input.limit);
+      });
+      it('status 200: accepts page query', async () => {
+        const input = {p: 2}
+        const {
+          body: { articles },
+          status,
+        } = await request(app).get("/api/articles").query(input);
+        expect(status).toBe(200);
+        expect(articles).toHaveLength(2);
+      });
+      it('status 200: articles object has total_count, displaying, and page properties', async () => {
+        const message = "showing results 1 to 10"
+        const {
+          body: { total_count, displaying, page },
+          status,
+        } = await request(app).get("/api/articles");
+        expect(status).toBe(200);
+        expect(total_count).toBe(12);
+        expect(displaying).toBe(message);
+        expect(page).toBe(1)
+      });
       it("status 400: rejects invalid order", async () => {
         const input = { order: "desc; SELECT * FROM users" };
         const { msg, tip, status: errStatus } = ERR_MSGS.INVALID_QUERY;
@@ -298,6 +345,26 @@ describe("express app", () => {
           msg: msg,
           tip: tip,
         });
+      });
+      it('status 400: rejects invalid limit value', async () => {
+        const input = { limit : "banana"};
+        const {msg, tip, status: errStatus} = ERR_MSGS.PG["22P02"];
+        const {body, status} = await request(app).get("/api/articles").query(input)
+        expect(status).toEqual(errStatus)
+        expect(body).toEqual({
+          msg: msg,
+          tip:tip
+        })
+      });
+      it('status 400: rejects invalid p value', async () => {
+        const input = { p: "banana"};
+        const {msg, tip, status: errStatus} = ERR_MSGS.PG["22P02"];
+        const {body, status} = await request(app).get("/api/articles").query(input)
+        expect(status).toEqual(errStatus)
+        expect(body).toEqual({
+          msg: msg,
+          tip:tip
+        })
       });
       it("status 404: when topic does not exist", async () => {
         const input = {topic: "non-existent topic"}

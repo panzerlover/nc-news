@@ -10,40 +10,45 @@ const { checkExists } = require("../utils/utils.js");
 exports.fetchArticles = async (
   sort_by = "created_at",
   order = "desc",
-  topic
+  topic,
+  limit = 10,
+  p = 1
 ) => {
   try {
     let values = [];
     let queryStr = `
-    SELECT articles.*, 
-    CAST(COUNT(comment_id) AS INTEGER) AS comment_count 
+    SELECT 
+    articles.*, 
+    CAST(COUNT(comment_id) AS INTEGER) AS comment_count
     FROM articles 
     LEFT JOIN comments USING (article_id) 
     `;
     if (topic !== undefined) {
-      queryStr += `
-      WHERE topic = $1 
-      `;
       values.push(topic);
+      queryStr += `WHERE topic = $${values.length} `;
     }
-    queryStr += `
-    GROUP BY article_id
-    `;
+    queryStr += ` GROUP BY article_id`;
     if (isValidArticleColumn(sort_by) && isValidOrder(order)) {
-      queryStr += ` ORDER BY articles.${sort_by} ${order};`;
+      queryStr += ` ORDER BY articles.${sort_by} ${order}`;
     } else {
       const { status, tip, msg } = ERR_MSGS.INVALID_QUERY;
       throw new CustomError(status, msg, tip, {});
     }
-    const data = await db.query(queryStr, values);
 
-    if (!data.rows.length) {
+    const data = {}
+    data.total_count = await (await db.query(queryStr, values)).rows.length;
+    const offset = (p - 1) * limit;
+    values.push(limit, offset);
+    queryStr += ` LIMIT $${values.length - 1} OFFSET $${values.length}`;
+
+    data.articles = await (await db.query(queryStr, values)).rows ;
+    if (!data.articles.length) {
       await checkExists("articles", "topic", topic);
     }
-
-    return data.rows;
+    data.page = p;
+    data.displaying = `showing results ${offset + 1} to ${offset + limit}`;
+    return data;
   } catch (err) {
-    if (err instanceof CustomError) throw err;
     throw new CustomError(500, null, null, err);
   }
 };
@@ -59,13 +64,11 @@ exports.addArticle = async (author, title, body, topic) => {
     RETURNING *
     ;`;
     const data = await db.query(queryStr, values);
-    
+
     return data.rows[0];
-
   } catch (err) {
-    throw new CustomError(500, null, null, err)
+    throw new CustomError(500, null, null, err);
   }
-
 };
 
 exports.fetchArticleById = async (id) => {
@@ -82,7 +85,6 @@ exports.fetchArticleById = async (id) => {
 
     return data.rows[0];
   } catch (err) {
-    if (err instanceof CustomError) throw err;
     throw new CustomError(400, null, null, err);
   }
 };
@@ -103,7 +105,6 @@ exports.updateArticleVotesById = async (id, votes) => {
 
     return data.rows[0];
   } catch (err) {
-    if (err instanceof CustomError) throw err;
     throw new CustomError(400, null, null, err);
   }
 };
@@ -122,7 +123,6 @@ exports.fetchCommentsByArticleId = async (id) => {
 
     return data.rows;
   } catch (err) {
-    if (err instanceof CustomError) throw err;
     throw new CustomError(400, null, null, err);
   }
 };
