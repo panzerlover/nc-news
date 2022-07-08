@@ -2,11 +2,13 @@
   "GET /api": {
     "description": "serves up a json representation of all the available endpoints of the api",
     "queries": [],
+    "exampleBody": {},
     "exampleResponse": {
       "endpoints": {
         "GET /api/topics": {
           "description": "serves an array of all topics",
           "queries": [],
+          "exampleBody": {},
           "exampleResponse": {
             "topics": [{ "slug": "football", "description": "Footie!" }]
           }
@@ -17,13 +19,28 @@
   "GET /api/topics": {
     "description": "serves an array of all topics",
     "queries": [],
+    "exampleBody": {},
     "exampleResponse": {
       "topics": [{ "slug": "football", "description": "Footie!" }]
+    }
+  },
+  "POST /api/topics": {
+    "description": "adds a topic to the database",
+    "queries": [],
+    "exampleBody": {
+      "slug": "apple cider",
+      "description": "For all things cider related"
+    },
+    "exampleResponse": {
+      "topic": [
+        { "slug": "apple cider", "description": "For all things cider related" }
+      ]
     }
   },
   "GET /api/articles": {
     "description": "serves an array of all articles, with option to filter by topic or sort by any column header",
     "queries": ["topic", "sort_by", "order", "limit", "p"],
+    "exampleBody": {},
     "exampleResponse": {
       "articles": [
         {
@@ -42,9 +59,31 @@
       "page": 1
     }
   },
+  "POST /api/articles": {
+    "description": "adds a new article to the database and serves up the created article",
+    "queries": [],
+    "exampleBody": {
+      "author": "lurker",
+      "title": "AITA for never once brushing my teeth, ever?",
+      "body": "I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?",
+      "topic": "mitch"
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 13,
+        "created_at": "2020-07-09T20:11:00.000Z",
+        "votes": 0,
+        "author": "lurker",
+        "title": "AITA for never once brushing my teeth, ever?",
+        "body": "I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?",
+        "topic": "mitch"
+      }
+    }
+  },
   "GET /api/articles/:article_id": {
     "description": "serves up the specified article",
     "queries": [],
+    "exampleBody": {},
     "exampleResponse": {
       "article": {
         "article_id": 1,
@@ -60,7 +99,8 @@
   },
   "PATCH /api/articles/:article_id": {
     "description": "adds or removes votes to the specified article, serves up the article",
-    "queries": ["inc_votes"],
+    "queries": [],
+    "exampleBody": { "inc_votes": 10 },
     "exampleResponse": {
       "article": {
         "article_id": 4,
@@ -73,9 +113,16 @@
       }
     }
   },
+  "DELETE /api/articles/:article_id": {
+    "description": "deletes specified article",
+    "queries": [],
+    "exampleBody": {},
+    "exampleResponse": {}
+  },
   "GET /api/articles/:article_id/comments": {
     "description": "serves up all comments for the specified article",
     "queries": ["limit", "p"],
+    "exampleBody": {},
     "exampleResponse": {
       "comments": [
         {
@@ -95,6 +142,7 @@
   "POST /api/articles/:article_id/comments": {
     "description": "adds a comment to the database, linked to the specified article. Serves up the posted comment",
     "queries": [],
+    "exampleBody": { "username": "lurker", "body": "me no like" },
     "exampleResponse": {
       "comment": {
         "comment_id": 19,
@@ -109,11 +157,28 @@
   "DELETE /api/comments/:comment_id": {
     "description": "deletes the specified comment",
     "queries": [],
+    "exampleBody": {},
     "exampleResponse": {}
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "changes the number of votes on a comment, then serves up the resulting comment",
+    "queries": [],
+    "exampleBody": {"inc_votes": 10},
+    "exampleResponse": {
+      "comment": {
+        "body": "I carry a log — yes. Is it funny to you? It is not to me.",
+        "votes": -60,
+        "author": "icellusedkars",
+        "article_id": 1,
+        "comment_id": 4,
+        "created_at": "2020-02-23T12:01:00.000Z"
+      }
+    }
   },
   "GET /api/users": {
     "description": "serves up an array of users",
     "queries": [],
+    "exampleBody": {},
     "exampleResponse": {
       "users": [
         {
@@ -122,6 +187,19 @@
           "avatar_url": "https://example.com"
         }
       ]
+    }
+  },
+  "GET /api/users/:username": {
+    "description": "serves up the specifed user",
+    "queries": [],
+    "exampleBody": {},
+    "exampleResponse": {
+      "user": {
+        "username": "lurker",
+        "name": "do_nothing",
+        "avatar_url":
+          "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+      }
     }
   }
 }
