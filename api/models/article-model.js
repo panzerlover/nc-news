@@ -48,6 +48,26 @@ exports.fetchArticles = async (
   }
 };
 
+exports.addArticle = async (author, title, body, topic) => {
+  try {
+    const values = [author, title, body, topic];
+    const queryStr = `
+    INSERT INTO articles
+    (author, title, body, topic)
+    VALUES
+    ($1, $2, $3, $4)
+    RETURNING *
+    ;`;
+    const data = await db.query(queryStr, values);
+    
+    return data.rows[0];
+
+  } catch (err) {
+    throw new CustomError(500, null, null, err)
+  }
+
+};
+
 exports.fetchArticleById = async (id) => {
   try {
     const queryStr = `SELECT articles.*, CAST(COUNT(comment_id) AS INTEGER) AS comment_count 

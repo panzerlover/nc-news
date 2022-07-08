@@ -4,11 +4,11 @@ const seed = require('./seed.js');
 const db = require('../connection.js');
 
 const dataPointer = process.argv[2] || "dev";
+const data = (dataPointer == "test") ? testData : (dataPointer == "dev") ? devData : devData;
 
-const runSeed = (dataPointer) => {
-  const data = (dataPointer === "dev") ? devData :
-    (dataPointer === "test") ? testData : devData;
+const runSeed = (data) => {
+  console.log("seeding...");
   return seed(data).then(() => db.end());
 };
 
-runSeed(dataPointer);
+runSeed(data);
