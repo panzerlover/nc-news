@@ -13,38 +13,38 @@ afterAll(() => db.end());
 
 describe("express app", () => {
   describe("bad path", () => {
-    it("should return 404 for invalid paths", () => {
-      return request(app)
-        .get("/api/this_path_does_not_exist")
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Path Not Found :(");
-        });
+    it("should return 404 for invalid paths", async () => {
+      const {
+        body: { msg },
+        status,
+      } = await request(app).get("/api/banana");
+      expect(status).toBe(404);
+      expect(msg).toBe("Path Not Found :(");
     });
   });
   describe("topics", () => {
     describe("GET /api/topics", () => {
-      it("status: 200 with slug and description properties", () => {
-        return request(app)
-          .get("/api/topics")
-          .expect(200)
-          .then(({ body }) => {
-            expect(body).toEqual(
-              expect.arrayContaining([
-                expect.objectContaining({
-                  slug: expect.any(String),
-                  description: expect.any(String),
-                }),
-              ])
-            );
-          });
+      it("status: 200 with slug and description properties", async () => {
+        const {
+          body: { topics },
+          status,
+        } = await request(app).get("/api/topics");
+        expect(status).toBe(200);
+        topics.forEach((topic) => {
+          expect(topic).toEqual(
+            expect.objectContaining({
+              slug: expect.any(String),
+              description: expect.any(String),
+            })
+          );
+        });
       });
       it("status 500: when table or db does not exist", async () => {
         await dropTables();
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
         const { body, status } = await request(app).get("/api/topics");
-        const { msg, tip } = ERR_MSGS.PG["42P01"];
-        expect(status).toBe(500);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 500,
           msg: msg,
           tip: tip,
         });
@@ -54,12 +54,7 @@ describe("express app", () => {
   describe("articles", () => {
     describe("GET /api/articles/:article_id", () => {
       it("status: 200 with correct properties", async () => {
-        const {
-          body: { article },
-          status,
-        } = await request(app).get("/api/articles/1");
-        expect(status).toBe(200);
-        expect(article).toEqual({
+        const output = {
           article_id: 1,
           title: "Living in the shadow of a great man",
           topic: "mitch",
@@ -68,28 +63,30 @@ describe("express app", () => {
           created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
           comment_count: 11,
-        });
+        }
+        const {
+          body: { article },
+          status,
+        } = await request(app).get("/api/articles/1");
+        expect(status).toBe(200);
+        expect(article).toEqual(output);
       });
       it("should return 400 when given article_id that is not a number ", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
         const { body, status } = await request(app).get(
           "/api/articles/1; SELECT * FROM users"
         );
-        const { msg, tip } = ERR_MSGS.PG["22P02"];
-        expect(status).toBe(400);
-        expect(body).toEqual(
-          expect.objectContaining({
-            status: 400,
-            msg: msg,
-            tip: tip,
-          })
-        );
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
       });
       it("should return 404 when article id does not exist", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app).get("/api/articles/9001");
-        const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
-        expect(status).toBe(404);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 404,
           msg: msg,
           tip: tip,
         });
@@ -98,21 +95,7 @@ describe("express app", () => {
     describe("PATCH /api/articles/:article_id", () => {
       it("status 200: with updated article votes when votes is positive", async () => {
         const input = { inc_votes: 40 };
-        const {
-          body: {
-            article: { votes: oldVotes },
-          },
-        } = await request(app).get("/api/articles/4");
-        const {
-          body: {
-            article: { votes: newVotes },
-          },
-          body: { article },
-          status,
-        } = await request(app).patch("/api/articles/4").send(input);
-        expect(status).toBe(201);
-        expect(newVotes).toBe(oldVotes + input.inc_votes);
-        expect(article).toEqual({
+        const output = {
           article_id: 4,
           title: "Student SUES Mitch!",
           topic: "mitch",
@@ -120,81 +103,73 @@ describe("express app", () => {
           body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
           created_at: "2020-05-06T01:14:00.000Z",
           votes: 40,
-        });
-      });
-      it("status 200: with updated article votes when votes is negative", async () => {
-        const input = { inc_votes: -400 };
+        }
         const {
-          body: {
-            article: { votes: oldVotes },
-          },
-        } = await request(app).get("/api/articles/4");
-        const {
-          body: {
-            article: { votes: newVotes },
-          },
           body: { article },
           status,
         } = await request(app).patch("/api/articles/4").send(input);
         expect(status).toBe(201);
-        expect(newVotes).toBe(oldVotes + input.inc_votes);
-        expect(article).toEqual(
-          expect.objectContaining({
-            article_id: 4,
-            title: "Student SUES Mitch!",
-            topic: "mitch",
-            author: "rogersop",
-            body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
-            created_at: "2020-05-06T01:14:00.000Z",
-            votes: -400,
-          })
-        );
+        expect(article).toEqual(output);
       });
-      it("400: missing vote body", async () => {
+      it("status 200: with updated article votes when votes is negative", async () => {
+        const input = { inc_votes: -400 };
+        const output = {
+          article_id: 4,
+          title: "Student SUES Mitch!",
+          topic: "mitch",
+          author: "rogersop",
+          body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
+          created_at: "2020-05-06T01:14:00.000Z",
+          votes: -400,
+        }
+        const {
+          body: { article },
+          status,
+        } = await request(app).patch("/api/articles/4").send(input);
+        expect(status).toBe(201);
+        expect(article).toEqual(output);
+      });
+      it("status 400: missing vote body", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
         const { body, status } = await request(app).patch("/api/articles/4");
-        const { msg, tip } = ERR_MSGS.PG["23502"];
-        expect(status).toBe(400);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
-      it("400: vote is wrong data type", async () => {
+      it("status 400: vote is wrong data type", async () => {
         const input = { inc_votes: "1; SELECT * FROM users;" };
-        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
         const { body, status } = await request(app)
           .patch("/api/articles/1")
           .send(input);
-        expect(status).toBe(400);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
-      it("400: invalid article_id data type", async () => {
+      it("status 400: invalid article_id data type", async () => {
         const input = { inc_votes: 10 };
-        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
         const { body, status } = await request(app)
           .patch("/api/articles/banana")
           .send(input);
-        expect(status).toBe(400);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
-      it("should return 404 custom error when valid article id but article does not exist", async () => {
+      it("status 404: article does not exist", async () => {
         const input = { inc_votes: 10 };
-        const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app)
           .patch("/api/articles/9001")
           .send(input);
-        expect(status).toBe(404);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 404,
           msg: msg,
           tip: tip,
         });
@@ -204,7 +179,9 @@ describe("express app", () => {
       it("status 200: with array of articles", async () => {
         const {
           body: { articles },
+          status,
         } = await request(app).get("/api/articles");
+        expect(status).toBe(200);
         articles.forEach((article) =>
           expect(article).toEqual(
             expect.objectContaining({
@@ -223,7 +200,9 @@ describe("express app", () => {
       it("status 200: sorted by created_at in descending order by default", async () => {
         const {
           body: { articles },
+          status,
         } = await request(app).get("/api/articles");
+        expect(status).toBe(200);
         expect(articles).toBeSortedBy("created_at", { descending: true });
       });
       it("status 200: accepts alternate sort_by queries ", async () => {
@@ -236,48 +215,58 @@ describe("express app", () => {
           "votes",
         ];
         for (let i = 0; i < columns.length; i++) {
+          const column = columns[i];
+          const input = { sort_by: column };
           const {
             body: { articles },
-          } = await request(app)
-            .get("/api/articles")
-            .query({ sort_by: columns[i] });
-          expect(articles).toBeSortedBy(columns[i], {
+            status,
+          } = await request(app).get("/api/articles").query(input);
+          expect(status).toBe(200);
+          expect(articles).toBeSortedBy(column, {
             descending: true,
             coerce: true,
           });
         }
       });
       it("status 200: accepts ascending order query", async () => {
+        const input = { order: "asc" };
         const {
           body: { articles },
-        } = await request(app).get("/api/articles").query({ order: "asc" });
+          status,
+        } = await request(app).get("/api/articles").query(input);
+        expect(status).toBe(200);
         expect(articles).toBeSortedBy("created_at", { ascending: true });
       });
       it("status 200: accepts sort_by AND order query", async () => {
+        const input = { sort_by: "title", order: "asc" };
         const {
           body: { articles },
-        } = await request(app)
-          .get("/api/articles")
-          .query({ sort_by: "title", order: "asc" });
+          status,
+        } = await request(app).get("/api/articles").query(input);
+        expect(status).toBe(200);
         expect(articles).toBeSortedBy("created_at", {
           ascending: true,
           coerce: true,
         });
       });
       it("status 200: accepts topic query", async () => {
+        const input = { topic: "mitch" };
         const {
           body: { articles },
-        } = await request(app).get("/api/articles").query({ topic: "mitch" });
+          status,
+        } = await request(app).get("/api/articles").query(input);
+        expect(status).toBe(200);
         articles.forEach((article) => {
           expect(article.topic).toBe("mitch");
         });
       });
       it("status 200: accepts valid sort_by, order, and topic queries", async () => {
+        const input = { sort_by: "title", order: "asc", topic: "mitch" };
         const {
           body: { articles },
-        } = await request(app)
-          .get("/api/articles")
-          .query({ sort_by: "title", order: "asc", topic: "mitch" });
+          status,
+        } = await request(app).get("/api/articles").query(input);
+        expect(status).toBe(200);
         expect(articles).toBeSortedBy("created_at", {
           ascending: true,
           coerce: true,
@@ -287,59 +276,139 @@ describe("express app", () => {
         });
       });
       it("status 400: rejects invalid order", async () => {
-        const { body } = await request(app)
+        const input = { order: "desc; SELECT * FROM users" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.INVALID_QUERY;
+        const { body, status } = await request(app)
           .get("/api/articles")
-          .query({ order: "desc; SELECT * FROM users" });
-        const errBody = ERR_MSGS.INVALID_QUERY;
-        expect(body).toEqual(errBody);
+          .query(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
       });
       it("status 400: rejects invalid sort_by column", async () => {
-        const { body } = await request(app)
+        const input = { sort_by: "age; SELECT * FROM users" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.INVALID_QUERY;
+        const { body, status } = await request(app)
           .get("/api/articles")
-          .query({ sort_by: "age; SELECT * FROM users" });
-        const errBody = ERR_MSGS.INVALID_QUERY;
-        expect(body).toEqual(errBody);
+          .query(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
       });
       it("status 404: when topic does not exist", async () => {
-        const { body } = await request(app)
+        const input = {topic: "non-existent topic"}
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
+        const { body, status } = await request(app)
           .get("/api/articles")
-          .query({ topic: "non-existent topic" });
-        const errObj = ERR_MSGS.DOES_NOT_EXIST;
-        expect(body).toEqual(errObj);
+          .query(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
       });
       it("status 500: when table does not exist", async () => {
         await dropTables();
-        const { msg, tip } = ERR_MSGS.PG["42P01"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
         const { body, status } = await request(app).get("/api/articles");
-        expect(status).toBe(500);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 500,
           msg: msg,
           tip: tip,
         });
       });
     });
-    describe.only("POST /api/articles", () => {
+    describe("POST /api/articles", () => {
       it("status 201: with created article", async () => {
-        const newArticle = {
+        const input = {
           author: "lurker",
           title: "AITA for never once brushing my teeth, ever?",
-          body: 'I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?',
+          body: "I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?",
           topic: "mitch",
         };
         const {
           body: { article },
           status,
-        } = await request(app).post("/api/articles").send(newArticle);
-        expect(status).toBe(201)
+        } = await request(app).post("/api/articles").send(input);
+        expect(status).toBe(201);
         expect(article).toEqual({
           article_id: 13,
-          title: 'AITA for never once brushing my teeth, ever?',
-          topic: 'mitch',
-          author: 'lurker',
-          body: 'I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?',
           created_at: expect.any(String),
-          votes: 0
+          votes: 0,
+          ...input
+        });
+      });
+      it("status 400: invalid username ", async () => {
+        const input = {
+          author: "banana",
+          title: "AITA for never once brushing my teeth, ever?",
+          body: "I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?",
+          topic: "mitch",
+        };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23503"];
+        const { body, status } = await request(app)
+          .post("/api/articles")
+          .send(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("status 400: invalid topic", async () => {
+        const input = {
+          author: "lurker",
+          title: "AITA for never once brushing my teeth, ever?",
+          body: "I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?",
+          topic: "banana",
+        };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23503"];
+        const { body, status } = await request(app)
+          .post("/api/articles")
+          .send(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("status 400: missing fields", async () => {
+        const input = {
+          author: "lurker",
+          body: "I literally never brush my teeth. As a result My breath could kill a small child or animal, and people have complained. Somebody pointed this out and made me feel bad. AITA for trying to get them fired?",
+          topic: "mitch",
+        };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
+        const { body, status } = await request(app)
+          .post("/api/articles")
+          .send(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("status 400: no body", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
+        const { body, status } = await request(app).post("/api/articles");
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("stats 500: table does not exist", async () => {
+        await dropTables();
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
+        const { body, status } = await request(app).post("/api/articles");
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
         });
       });
     });
@@ -347,7 +416,9 @@ describe("express app", () => {
       it("status 200: array of comments with only specified article id", async () => {
         const {
           body: { comments },
+          status,
         } = await request(app).get("/api/articles/1/comments");
+        expect(status).toBe(200);
         comments.forEach((comment) =>
           expect(comment).toEqual(
             expect.objectContaining({
@@ -362,38 +433,35 @@ describe("express app", () => {
         );
       });
       it("status 404: valid article_id (no such article id)", async () => {
-        const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app).get(
           "/api/articles/9001/comments"
         );
-        expect(status).toBe(404);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 404,
           msg: msg,
           tip: tip,
         });
       });
       it("status 400: invalid article_id (invalid type)", async () => {
-        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
         const { body, status } = await request(app).get(
           "/api/articles/1; SELECT * FROM users/comments"
         );
-        expect(status).toBe(400);
+        expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
       it("status 500: when table does not exist", async () => {
         await dropTables();
-        const { msg, tip } = ERR_MSGS.PG["42P01"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
         const { body, status } = await request(app).get(
           "/api/articles/1/comments"
         );
-        expect(status).toBe(500);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 500,
           msg: msg,
           tip: tip,
         });
@@ -407,16 +475,14 @@ describe("express app", () => {
           status,
         } = await request(app).post("/api/articles/1/comments").send(input);
         expect(status).toBe(201);
-        expect(comment).toEqual(
-          expect.objectContaining({
+        expect(comment).toEqual({
             comment_id: 19,
-            body: input.body,
             article_id: 1,
-            author: input.username,
             votes: 0,
             created_at: expect.any(String),
-          })
-        );
+            author: input.username,
+            body: input.body
+          });
       });
       it("status 400: when no request body", async () => {
         const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
@@ -425,75 +491,69 @@ describe("express app", () => {
         );
         expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: errStatus,
           msg: msg,
           tip: tip,
         });
       });
       it("status 400: when missing username", async () => {
-        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
         const input = { body: "me REALLY no like" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
         const { body, status } = await request(app)
           .post("/api/articles/1/comments")
           .send(input);
         expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: errStatus,
           msg: msg,
           tip: tip,
         });
       });
       it("status 400: when missing body", async () => {
-        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
         const input = { username: "lurker" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
         const { body, status } = await request(app)
           .post("/api/articles/1/comments")
           .send(input);
         expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: errStatus,
           msg: msg,
           tip: tip,
         });
       });
       it("status 404: user does not exist", async () => {
-        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const input = { username: "hunter2", body: "<insert inside joke>" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app)
           .post("/api/articles/1/comments")
           .send(input);
         expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: errStatus,
           msg: msg,
           tip: tip,
         });
       });
       it("status 404: article does not exist", async () => {
-        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const input = { username: "lurker", body: "<insert inside joke>" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app)
           .post("/api/articles/9001/comments")
           .send(input);
         expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: errStatus,
           msg: msg,
           tip: tip,
         });
       });
       it("status 404: invalid username (sql injection)", async () => {
-        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const input = {
           username: "1); SELECT * FROM users",
           body: "<insert inside joke>",
         };
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app)
           .post("/api/articles/1/comments")
           .send(input);
         expect(status).toEqual(errStatus);
         expect(body).toEqual({
-          status: errStatus,
           msg: msg,
           tip: tip,
         });
@@ -508,57 +568,36 @@ describe("express app", () => {
         expect(body).toEqual({});
       });
       it("status 400: invalid comment ", async () => {
-        const errBody = ERR_MSGS.PG["22P02"];
-        const { body } = await request(app).delete(
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app).delete(
           "/api/comments/1; SELECT * FROM users;"
         );
-        expect(body).toEqual(errBody);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({ msg: msg, tip: tip });
       });
       it("status 404: comment does not exist", async () => {
-        const errBody = ERR_MSGS.DOES_NOT_EXIST;
-        const { body } = await request(app).delete("/api/comments/9001");
-        expect(body).toEqual(errBody);
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
+        const { body, status } = await request(app).delete(
+          "/api/comments/9001"
+        );
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
       });
     });
     describe("PATCH /api/comments/:comment_id", () => {
       it("status 201: with updated comment votes when votes is positive", async () => {
         const input = { inc_votes: 40 };
-        const oldComment = {
-          body: " I carry a log — yes. Is it funny to you? It is not to me.",
-          votes: -100,
-          author: "icellusedkars",
-          article_id: 1,
-          comment_id: 4,
-          created_at: "2020-02-23T12:01:00.000Z",
-        };
-        const {
-          body: {
-            comment: { votes },
-          },
-          body: { comment },
-          status,
-        } = await request(app).patch("/api/comments/4").send(input);
-        expect(status).toBe(201);
-        expect(votes).toBe(oldComment.votes + input.inc_votes);
-        expect(comment).toEqual({
+        const output = {
           body: " I carry a log — yes. Is it funny to you? It is not to me.",
           votes: -60,
           author: "icellusedkars",
           article_id: 1,
           comment_id: 4,
           created_at: "2020-02-23T12:01:00.000Z",
-        });
-      });
-      it("status 201: with updated comment votes when votes is negative", async () => {
-        const input = { inc_votes: -400 };
-        const oldComment = {
-          body: " I carry a log — yes. Is it funny to you? It is not to me.",
-          votes: -100,
-          author: "icellusedkars",
-          article_id: 1,
-          comment_id: 4,
-          created_at: "2020-02-23T12:01:00.000Z",
-        };
+        }
         const {
           body: {
             comment: { votes },
@@ -567,61 +606,66 @@ describe("express app", () => {
           status,
         } = await request(app).patch("/api/comments/4").send(input);
         expect(status).toBe(201);
-        expect(votes).toBe(oldComment.votes + input.inc_votes);
-        expect(comment).toEqual({
+        expect(comment).toEqual(output);
+      });
+      it("status 201: with updated comment votes when votes is negative", async () => {
+        const input = { inc_votes: -400 };
+        const output = {
           body: " I carry a log — yes. Is it funny to you? It is not to me.",
           votes: -500,
           author: "icellusedkars",
           article_id: 1,
           comment_id: 4,
           created_at: "2020-02-23T12:01:00.000Z",
-        });
+        };
+        const {
+          body: { comment },
+          status,
+        } = await request(app).patch("/api/comments/4").send(input);
+        expect(status).toBe(201);
+        expect(comment).toEqual(output);
       });
       it("400: missing vote body", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
         const { body, status } = await request(app).patch("/api/comments/4");
-        const { msg, tip } = ERR_MSGS.PG["23502"];
-        expect(status).toBe(400);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
       it("400: vote is wrong data type", async () => {
         const input = { inc_votes: "1; SELECT * FROM users;" };
-        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
         const { body, status } = await request(app)
           .patch("/api/comments/1")
           .send(input);
-        expect(status).toBe(400);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
       it("400: invalid comment_id data type", async () => {
         const input = { inc_votes: 10 };
-        const { msg, tip } = ERR_MSGS.PG["22P02"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
         const { body, status } = await request(app)
           .patch("/api/comments/banana")
           .send(input);
-        expect(status).toBe(400);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 400,
           msg: msg,
           tip: tip,
         });
       });
       it("should return 404 custom error when valid comment id but comment does not exist", async () => {
         const input = { inc_votes: 10 };
-        const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app)
           .patch("/api/comments/9001")
           .send(input);
-        expect(status).toBe(404);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 404,
           msg: msg,
           tip: tip,
         });
@@ -636,23 +680,22 @@ describe("express app", () => {
           status,
         } = await request(app).get("/api/users");
         expect(status).toBe(200);
-        expect(users).toEqual(
-          expect.arrayContaining([
+        users.forEach((user)=> {
+          expect(user).toEqual(
             expect.objectContaining({
               username: expect.any(String),
               name: expect.any(String),
               avatar_url: expect.any(String),
-            }),
-          ])
-        );
+            })
+          )
+        })
       });
       it("status 500: when table does not exist", async () => {
         await dropTables();
-        const { msg, tip } = ERR_MSGS.PG["42P01"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
         const { body, status } = await request(app).get("/api/users");
-        expect(status).toBe(500);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 500,
           msg: msg,
           tip: tip,
         });
@@ -660,37 +703,36 @@ describe("express app", () => {
     });
     describe("GET /api/users/:username", () => {
       it("status 200: with specified user", async () => {
+        const output = {
+          username: "lurker",
+          name: "do_nothing",
+          avatar_url:
+            "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+        }
         const {
           body: { user },
           status,
         } = await request(app).get("/api/users/lurker");
         expect(status).toBe(200);
-        expect(user).toEqual({
-          username: "lurker",
-          name: "do_nothing",
-          avatar_url:
-            "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
-        });
+        expect(user).toEqual(output);
       });
       it("status 404: user does not exist", async () => {
-        const { msg, tip } = ERR_MSGS.DOES_NOT_EXIST;
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app).get(
           "/api/users/1; SELECT * FROM topics"
         );
-        expect(status).toBe(404);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 404,
           msg: msg,
           tip: tip,
         });
       });
       it("status 500: table does not exist", async () => {
         await dropTables();
-        const { msg, tip } = ERR_MSGS.PG["42P01"];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
         const { body, status } = await request(app).get("/api/users/lurker");
-        expect(status).toBe(500);
+        expect(status).toBe(errStatus);
         expect(body).toEqual({
-          status: 500,
           msg: msg,
           tip: tip,
         });

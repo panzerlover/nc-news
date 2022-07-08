@@ -7,7 +7,8 @@ exports.pathErrorHandler = (req, res) => {
 
 exports.customErrorHandler = (err, req, res, next) => {
     if (err instanceof CustomError) {
-        res.status(err.status).send(err)
+        const  {msg, tip} = err;
+        res.status(err.status).send({msg: msg, tip: tip})
     } else {
         next(err)
     }
