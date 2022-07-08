@@ -147,8 +147,10 @@ exports.fetchCommentsByArticleId = async (id, limit = 10, p = 1) => {
 exports.addCommentByArticleId = async (id, username, body) => {
   try {
     const queryStr = `
-   INSERT INTO comments (article_id, author, body, votes)
-   VALUES ($1, $2, $3, 0)
+   INSERT INTO comments 
+   (article_id, author, body, votes)
+   VALUES 
+   ($1, $2, $3, 0)
    RETURNING *;
    `;
     const data = await db.query(queryStr, [id, username, body]);

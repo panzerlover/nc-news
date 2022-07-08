@@ -50,6 +50,67 @@ describe("express app", () => {
         });
       });
     });
+    describe("POST /api/topics", () => {
+      it("status 201: returns created topic object", async () => {
+        const input = {
+          slug: "Slugs must Die",
+          description:
+            "Discussion on how to eradicate slugs from the face of the eary",
+        };
+        const {
+          body: { topic },
+          status,
+        } = await request(app).post("/api/topics").send(input);
+        expect(status).toBe(201);
+        expect(topic).toEqual(input);
+      });
+      it("status 400: topic already exists", async () => {
+        const input = { slug: "mitch", desciption: "duplicate topic" };
+        const {msg, tip, status: errStatus} = ERR_MSGS.PG[23505];
+        const { body, status } = await request(app)
+          .post("/api/topics")
+          .send(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip
+        });
+      });
+      it('status 400: missing body ', async () => {
+        const {msg, tip, status: errStatus} = ERR_MSGS.PG[23502];
+        const { body, status } = await request(app)
+          .post("/api/topics")
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip
+        });
+      });
+      it('status 400: missing slug ', async () => {
+        const input = {desciption: "duplicate topic" };
+        const {msg, tip, status: errStatus} = ERR_MSGS.PG[23502];
+        const { body, status } = await request(app)
+          .post("/api/topics")
+          .send(input)
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip
+        });
+      });
+      it('status 500: table does not exist ', async () => {
+        await dropTables();
+        const {msg, tip, status: errStatus} = ERR_MSGS.PG["42P01"];
+        const { body, status } = await request(app)
+          .post("/api/topics")
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip
+        });
+      });
+
+    });
   });
   describe("articles", () => {
     describe("GET /api/articles/:article_id", () => {
@@ -550,7 +611,6 @@ describe("express app", () => {
           msg: msg,
           tip: tip,
         });
-
       });
       it("status 404: valid article_id (no such article id)", async () => {
         const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;

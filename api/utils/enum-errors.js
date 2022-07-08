@@ -36,6 +36,11 @@ const ERR_MSGS = {
             tip: "Something in your params/body isn't quite right. It's possible something is missing, or incorrect.",
             status: 400,
           },
+        "23505": {
+            msg: "Already Exists",
+            tip: "You tried to create something that already exists",
+            status: 400,
+        }
     },
 }
 module.exports = ERR_MSGS;
