@@ -5,6 +5,7 @@ const {
   getCommentsByArticleId,
   postCommentByArticleId,
   postArticle,
+  deleteArticleByArticleId,
 } = require("../controllers/article-controller");
 
 const articleRouter = require("express").Router();
@@ -17,7 +18,8 @@ articleRouter
 articleRouter
   .route("/:article_id")
   .get(getArticleById)
-  .patch(patchArticleVotesByArticleId);
+  .patch(patchArticleVotesByArticleId)
+  .delete(deleteArticleByArticleId);
 
 articleRouter
   .route("/:article_id/comments")
