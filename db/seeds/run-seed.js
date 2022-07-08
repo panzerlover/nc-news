@@ -7,8 +7,8 @@ const dataPointer = process.argv[2] || "dev";
 const data = (dataPointer == "test") ? testData : (dataPointer == "dev") ? devData : devData;
 
 const runSeed = (data) => {
-  console.log("seeding...");
+  console.log("seeding....")
   return seed(data).then(() => db.end());
 };
 
-runSeed(data);
+runSeed(data)
