@@ -15,7 +15,6 @@ exports.fetchArticles = async (
   p = 1
 ) => {
   try {
-
     limit = parseInt(limit);
     p = parseInt(p);
     let values = [];
@@ -70,6 +69,27 @@ exports.addArticle = async (author, title, body, topic) => {
     const data = await db.query(queryStr, values);
 
     return data.rows[0];
+  } catch (err) {
+    throw new CustomError(500, null, null, err);
+  }
+};
+
+exports.retireArticleByArticleId = async (id) => {
+  try {
+    const values = [id];
+    const queryStr = `
+    DELETE FROM
+    articles
+    WHERE
+    article_id = $1
+    RETURNING *
+    `;
+    const data = await db.query(queryStr, values);
+
+    if (!data.rows.length) {
+      await checkExists("articles", "article_id", id);
+    }
+
   } catch (err) {
     throw new CustomError(500, null, null, err);
   }

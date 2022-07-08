@@ -66,50 +66,47 @@ describe("express app", () => {
       });
       it("status 400: topic already exists", async () => {
         const input = { slug: "mitch", desciption: "duplicate topic" };
-        const {msg, tip, status: errStatus} = ERR_MSGS.PG[23505];
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG[23505];
         const { body, status } = await request(app)
           .post("/api/topics")
           .send(input);
         expect(status).toBe(errStatus);
         expect(body).toEqual({
           msg: msg,
-          tip: tip
+          tip: tip,
         });
       });
-      it('status 400: missing body ', async () => {
-        const {msg, tip, status: errStatus} = ERR_MSGS.PG[23502];
-        const { body, status } = await request(app)
-          .post("/api/topics")
+      it("status 400: missing body ", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG[23502];
+        const { body, status } = await request(app).post("/api/topics");
         expect(status).toBe(errStatus);
         expect(body).toEqual({
           msg: msg,
-          tip: tip
+          tip: tip,
         });
       });
-      it('status 400: missing slug ', async () => {
-        const input = {desciption: "duplicate topic" };
-        const {msg, tip, status: errStatus} = ERR_MSGS.PG[23502];
+      it("status 400: missing slug ", async () => {
+        const input = { desciption: "duplicate topic" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG[23502];
         const { body, status } = await request(app)
           .post("/api/topics")
-          .send(input)
+          .send(input);
         expect(status).toBe(errStatus);
         expect(body).toEqual({
           msg: msg,
-          tip: tip
+          tip: tip,
         });
       });
-      it('status 500: table does not exist ', async () => {
+      it("status 500: table does not exist ", async () => {
         await dropTables();
-        const {msg, tip, status: errStatus} = ERR_MSGS.PG["42P01"];
-        const { body, status } = await request(app)
-          .post("/api/topics")
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["42P01"];
+        const { body, status } = await request(app).post("/api/topics");
         expect(status).toBe(errStatus);
         expect(body).toEqual({
           msg: msg,
-          tip: tip
+          tip: tip,
         });
       });
-
     });
   });
   describe("articles", () => {
@@ -229,6 +226,32 @@ describe("express app", () => {
         const { body, status } = await request(app)
           .patch("/api/articles/9001")
           .send(input);
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+      });
+    });
+    describe("DELETE /api/articles/:article_id", () => {
+      it("status 204: and no content when valid article_id", async () => {
+        const { body, status } = await request(app).delete("/api/articles/1");
+        expect(status).toBe(204);
+        expect(body).toEqual({});
+      });
+      it("status 400: invalid comment ", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app).delete(
+          "/api/articles/1; SELECT * FROM users"
+        );
+        expect(status).toBe(errStatus);
+        expect(body).toEqual({ msg: msg, tip: tip });
+      });
+      it("status 404: comment does not exist", async () => {
+        const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
+        const { body, status } = await request(app).delete(
+          "/api/articles/9001"
+        );
         expect(status).toBe(errStatus);
         expect(body).toEqual({
           msg: msg,

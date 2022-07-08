@@ -5,6 +5,7 @@ const {
   fetchCommentsByArticleId,
   addCommentByArticleId,
   addArticle,
+  retireArticleByArticleId,
 } = require("../models/article-model");
 
 exports.getArticles = (req, res, next) => {
@@ -51,6 +52,17 @@ exports.patchArticleVotesByArticleId = (req, res, next) => {
   updateArticleVotesById(article_id, inc_votes)
     .then((article) => {
       res.status(201).send({ article: article });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.deleteArticleByArticleId = (req, res, next) => {
+  const { article_id } = req.params;
+  retireArticleByArticleId(article_id)
+    .then(() => {
+      res.send(204).end();
     })
     .catch((err) => {
       next(err);
