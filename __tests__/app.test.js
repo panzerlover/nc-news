@@ -63,7 +63,7 @@ describe("express app", () => {
           created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
           comment_count: 11,
-        }
+        };
         const {
           body: { article },
           status,
@@ -103,7 +103,7 @@ describe("express app", () => {
           body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
           created_at: "2020-05-06T01:14:00.000Z",
           votes: 40,
-        }
+        };
         const {
           body: { article },
           status,
@@ -121,7 +121,7 @@ describe("express app", () => {
           body: "We all love Mitch and his wonderful, unique typing style. However, the volume of his typing has ALLEGEDLY burst another students eardrums, and they are now suing for damages",
           created_at: "2020-05-06T01:14:00.000Z",
           votes: -400,
-        }
+        };
         const {
           body: { article },
           status,
@@ -275,7 +275,7 @@ describe("express app", () => {
           expect(article.topic).toBe("mitch");
         });
       });
-      it('status 200: limits to 10 entries by default', async () => {
+      it("status 200: limits to 10 entries by default", async () => {
         const {
           body: { articles },
           status,
@@ -283,18 +283,18 @@ describe("express app", () => {
         expect(status).toBe(200);
         expect(articles).toHaveLength(10);
       });
-      it('status 200: returns first 10 entries by default', async () => {
-        const input = {sort_by: "article_id", order: "asc"};
+      it("status 200: returns first 10 entries by default", async () => {
+        const input = { sort_by: "article_id", order: "asc" };
         const {
           body: { articles },
           status,
-        } = await request(app).get("/api/articles").query(input)
+        } = await request(app).get("/api/articles").query(input);
         const last = articles[9];
         expect(status).toBe(200);
         expect(last.article_id).toBe(10);
       });
-      it('status 200: accepts limit query', async () => {
-        const input = {limit: 5}
+      it("status 200: accepts limit query", async () => {
+        const input = { limit: 5 };
         const {
           body: { articles },
           status,
@@ -302,8 +302,8 @@ describe("express app", () => {
         expect(status).toBe(200);
         expect(articles).toHaveLength(input.limit);
       });
-      it('status 200: accepts page query', async () => {
-        const input = {p: 2}
+      it("status 200: accepts page query", async () => {
+        const input = { p: 2 };
         const {
           body: { articles },
           status,
@@ -311,16 +311,17 @@ describe("express app", () => {
         expect(status).toBe(200);
         expect(articles).toHaveLength(2);
       });
-      it('status 200: articles object has total_count, displaying, and page properties', async () => {
-        const message = "showing results 1 to 10"
+      it("status 200: articles object has total_count, displaying, and page properties", async () => {
+        const input = { limit: 2, p: 2 };
+        const message = "showing results 3 to 4";
         const {
           body: { total_count, displaying, page },
           status,
-        } = await request(app).get("/api/articles");
+        } = await request(app).get("/api/articles").query(input);
         expect(status).toBe(200);
         expect(total_count).toBe(12);
         expect(displaying).toBe(message);
-        expect(page).toBe(1)
+        expect(page).toBe(2);
       });
       it("status 400: rejects invalid order", async () => {
         const input = { order: "desc; SELECT * FROM users" };
@@ -346,28 +347,32 @@ describe("express app", () => {
           tip: tip,
         });
       });
-      it('status 400: rejects invalid limit value', async () => {
-        const input = { limit : "banana"};
-        const {msg, tip, status: errStatus} = ERR_MSGS.PG["22P02"];
-        const {body, status} = await request(app).get("/api/articles").query(input)
-        expect(status).toEqual(errStatus)
+      it("status 400: rejects invalid limit value", async () => {
+        const input = { limit: "banana" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app)
+          .get("/api/articles")
+          .query(input);
+        expect(status).toEqual(errStatus);
         expect(body).toEqual({
           msg: msg,
-          tip:tip
-        })
+          tip: tip,
+        });
       });
-      it('status 400: rejects invalid p value', async () => {
-        const input = { p: "banana"};
-        const {msg, tip, status: errStatus} = ERR_MSGS.PG["22P02"];
-        const {body, status} = await request(app).get("/api/articles").query(input)
-        expect(status).toEqual(errStatus)
+      it("status 400: rejects invalid p value", async () => {
+        const input = { p: "banana" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app)
+          .get("/api/articles")
+          .query(input);
+        expect(status).toEqual(errStatus);
         expect(body).toEqual({
           msg: msg,
-          tip:tip
-        })
+          tip: tip,
+        });
       });
       it("status 404: when topic does not exist", async () => {
-        const input = {topic: "non-existent topic"}
+        const input = { topic: "non-existent topic" };
         const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app)
           .get("/api/articles")
@@ -406,7 +411,7 @@ describe("express app", () => {
           article_id: 13,
           created_at: expect.any(String),
           votes: 0,
-          ...input
+          ...input,
         });
       });
       it("status 400: invalid username ", async () => {
@@ -499,6 +504,54 @@ describe("express app", () => {
           )
         );
       });
+      it("status 200: comments are paginated, default to 10, with displaying and page properties", async () => {
+        const message = "showing results 1 to 10";
+        const {
+          body: { comments, displaying, page },
+          status,
+        } = await request(app).get("/api/articles/1/comments");
+        expect(status).toBe(200);
+        expect(comments).toHaveLength(10);
+        expect(displaying).toBe(message);
+        expect(page).toBe(1);
+      });
+      it("status 200: accepts limit and page queries - displaying concatenates correctly", async () => {
+        const message = "showing results 3 to 4";
+        const input = { limit: 2, p: 2 };
+        const {
+          body: { comments, displaying, page },
+          status,
+        } = await request(app).get("/api/articles/1/comments").query(input);
+        expect(status).toBe(200);
+        expect(comments).toHaveLength(2);
+        expect(displaying).toBe(message);
+        expect(page).toBe(2);
+      });
+      it("status 400: invalid limit", async () => {
+        const input = { limit: "banana" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app)
+          .get("/api/articles/1/comments")
+          .query(input);
+        expect(status).toEqual(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+      });
+      it("status 400: invalid p", async () => {
+        const input = { p: "banana" };
+        const { msg, tip, status: errStatus } = ERR_MSGS.PG["22P02"];
+        const { body, status } = await request(app)
+          .get("/api/articles/1/comments")
+          .query(input);
+        expect(status).toEqual(errStatus);
+        expect(body).toEqual({
+          msg: msg,
+          tip: tip,
+        });
+
+      });
       it("status 404: valid article_id (no such article id)", async () => {
         const { msg, tip, status: errStatus } = ERR_MSGS.DOES_NOT_EXIST;
         const { body, status } = await request(app).get(
@@ -543,13 +596,13 @@ describe("express app", () => {
         } = await request(app).post("/api/articles/1/comments").send(input);
         expect(status).toBe(201);
         expect(comment).toEqual({
-            comment_id: 19,
-            article_id: 1,
-            votes: 0,
-            created_at: expect.any(String),
-            author: input.username,
-            body: input.body
-          });
+          comment_id: 19,
+          article_id: 1,
+          votes: 0,
+          created_at: expect.any(String),
+          author: input.username,
+          body: input.body,
+        });
       });
       it("status 400: when no request body", async () => {
         const { msg, tip, status: errStatus } = ERR_MSGS.PG["23502"];
@@ -664,7 +717,7 @@ describe("express app", () => {
           article_id: 1,
           comment_id: 4,
           created_at: "2020-02-23T12:01:00.000Z",
-        }
+        };
         const {
           body: {
             comment: { votes },
@@ -747,15 +800,15 @@ describe("express app", () => {
           status,
         } = await request(app).get("/api/users");
         expect(status).toBe(200);
-        users.forEach((user)=> {
+        users.forEach((user) => {
           expect(user).toEqual(
             expect.objectContaining({
               username: expect.any(String),
               name: expect.any(String),
               avatar_url: expect.any(String),
             })
-          )
-        })
+          );
+        });
       });
       it("status 500: when table does not exist", async () => {
         await dropTables();
@@ -775,7 +828,7 @@ describe("express app", () => {
           name: "do_nothing",
           avatar_url:
             "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
-        }
+        };
         const {
           body: { user },
           status,

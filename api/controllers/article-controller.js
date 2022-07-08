@@ -11,14 +11,12 @@ exports.getArticles = (req, res, next) => {
   const { sort_by, order, topic, limit, p } = req.query;
   fetchArticles(sort_by, order, topic, limit, p)
     .then((articles) => {
-      res
-        .status(200)
-        .send({
-          articles: articles.articles,
-          total_count: articles.total_count,
-          displaying: articles.displaying,
-          page: articles.page
-        });
+      res.status(200).send({
+        articles: articles.articles,
+        total_count: articles.total_count,
+        displaying: articles.displaying,
+        page: articles.page,
+      });
     })
     .catch((err) => {
       next(err);
@@ -61,9 +59,15 @@ exports.patchArticleVotesByArticleId = (req, res, next) => {
 
 exports.getCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
-  fetchCommentsByArticleId(article_id)
+  const { limit, p } = req.query;
+  fetchCommentsByArticleId(article_id, limit, p)
     .then((comments) => {
-      res.status(200).send({ comments: comments });
+      res.status(200).send({
+        comments: comments.comments,
+        total_count: comments.total_count,
+        displaying: comments.displaying,
+        page: comments.page,
+      });
     })
     .catch((err) => {
       next(err);

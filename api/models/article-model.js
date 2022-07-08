@@ -15,6 +15,9 @@ exports.fetchArticles = async (
   p = 1
 ) => {
   try {
+
+    limit = parseInt(limit);
+    p = parseInt(p);
     let values = [];
     let queryStr = `
     SELECT 
@@ -35,13 +38,14 @@ exports.fetchArticles = async (
       throw new CustomError(status, msg, tip, {});
     }
 
-    const data = {}
+    const data = {};
     data.total_count = await (await db.query(queryStr, values)).rows.length;
+
     const offset = (p - 1) * limit;
     values.push(limit, offset);
     queryStr += ` LIMIT $${values.length - 1} OFFSET $${values.length}`;
 
-    data.articles = await (await db.query(queryStr, values)).rows ;
+    data.articles = await (await db.query(queryStr, values)).rows;
     if (!data.articles.length) {
       await checkExists("articles", "topic", topic);
     }
@@ -109,19 +113,32 @@ exports.updateArticleVotesById = async (id, votes) => {
   }
 };
 
-exports.fetchCommentsByArticleId = async (id) => {
+exports.fetchCommentsByArticleId = async (id, limit = 10, p = 1) => {
   try {
-    const queryStr = `
+    limit = parseInt(limit);
+    p = parseInt(p);
+    const data = {};
+    const values = [id];
+    let queryStr = `
     SELECT * FROM comments
     WHERE article_id = $1
-    ;`;
-    const data = await db.query(queryStr, [id]);
+    `;
+    data.total_count = await (await db.query(queryStr, values)).rows.length;
 
-    if (!data.rows.length) {
+    queryStr += ` LIMIT $2 OFFSET $3`;
+
+    const offset = (p - 1) * limit;
+    values.push(limit, offset);
+
+    data.comments = await (await db.query(queryStr, values)).rows;
+    data.displaying = `showing results ${offset + 1} to ${offset + limit}`;
+    data.page = p;
+
+    if (!data.comments.length) {
       await checkExists("articles", "article_id", id);
     }
 
-    return data.rows;
+    return data;
   } catch (err) {
     throw new CustomError(400, null, null, err);
   }
