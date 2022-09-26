@@ -17,7 +17,12 @@
     "type": "git",
     "url": "git+https://github.com/northcoders/be-nc-news.git"
   },
-  "keywords": ["B/E", "API", "WebService", "Portfolio"],
+  "keywords": [
+    "B/E",
+    "API",
+    "WebService",
+    "Portfolio"
+  ],
   "author": "Joseph Craven",
   "license": "ISC",
   "bugs": {
@@ -32,6 +37,7 @@
     "supertest": "^6.2.4"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "pg": "^8.7.3",
@@ -39,7 +45,8 @@
   },
   "jest": {
     "setupFilesAfterEnv": [
-      "jest-extended/all", "jest-sorted"
+      "jest-extended/all",
+      "jest-sorted"
     ]
   }
 }
